@@ -7,7 +7,7 @@
 // Derive door aperture positions from the project scale and the user's supplied leaf sizes.
 // These remain modelling assumptions, not measurements of the original flat.
 const PX_PER_METRE = 85.05;
-const FRONT_DOOR_WIDTH = 0.838;
+const FRONT_DOOR_WIDTH = 1.038; // user-requested +20 cm over the v0.14 entrance width; exceeds typical widths in reference table
 const INTERNAL_DOOR_WIDTH = 0.762;
 const ENTRANCE_LEFT_X = 605 - FRONT_DOOR_WIDTH * PX_PER_METRE;
 const RECEPTION_JOIN_X = 562.5;
@@ -24,10 +24,10 @@ export const PLAN = {
   balconyAreaM2: 5.11,      // source's larger balcony; not modelled yet
   pxPerMetre: PX_PER_METRE,        // calibrated to printed kitchen/reception widths; approximate
   centre: [654, 447],
-  ceilingHeight: 2.10,      // virtual ceiling raised 10 cm from v0.13 at user request
-  doorHeight: 1.731,         // v0.14: user-requested 10 cm shorter than v0.13; independent of ceiling height
+  ceilingHeight: 2.10,      // CONFIRMED preferred virtual ceiling height: lock at 2.10 m unless user requests otherwise
+  doorHeight: 1.981,         // restored standard door height from the user's reference table, independent of ceiling
   doorStandards: {
-    entrance: {width: FRONT_DOOR_WIDTH, thickness: 0.044}, // model 838 mm leaf, minimum 44 mm thick
+    entrance: {width: FRONT_DOOR_WIDTH, thickness: 0.044}, // custom 1038 mm wide entrance leaf, 44 mm thick
     internal: {width: INTERNAL_DOOR_WIDTH, thickness: 0.035} // model 762 mm leaf, standard 35 mm thick
   },
   wallOuter: 0.19,          // provisional wall construction thicknesses
@@ -93,5 +93,5 @@ export const PLAN = {
     { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
   ],
-  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. Virtual ceiling 2.10 m. Door panels now 1731 mm high by user-requested visual adjustment (10 cm shorter than v0.13); entrance 838 mm wide / 44 mm thick; internal 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
+  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. CONFIRMED virtual ceiling 2.10 m. Door panels restored to 1981 mm high per user standard; entrance widened 20 cm to a custom 1038 mm leaf / 44 mm thick; internal 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
 };
