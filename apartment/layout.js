@@ -25,7 +25,7 @@ export const PLAN = {
   pxPerMetre: PX_PER_METRE,        // calibrated to printed kitchen/reception widths; approximate
   centre: [654, 447],
   ceilingHeight: 2.00,      // virtual ceiling lowered 10 cm from live v0.10, user-requested
-  doorHeight: 1.981,         // user-supplied standard 1981 mm leaf; 2040 mm does not fit under the 2.00 m ceiling
+  doorHeight: 1.831,         // visual adjustment: user requested 15 cm shorter than the previous 1.981 m leaves
   doorStandards: {
     entrance: {width: FRONT_DOOR_WIDTH, thickness: 0.044}, // model 838 mm leaf, minimum 44 mm thick
     internal: {width: INTERNAL_DOOR_WIDTH, thickness: 0.035} // model 762 mm leaf, standard 35 mm thick
@@ -93,5 +93,5 @@ export const PLAN = {
     { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
   ],
-  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. Virtual ceiling 2.00 m. Door leaf dimensions updated from user-supplied typical sizes: 1981 mm high; entrance 838 mm wide / 44 mm thick; internal 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
+  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. Virtual ceiling 2.00 m. Door panels now 1831 mm high by user-requested visual adjustment (15 cm shorter than 1981 mm); entrance 838 mm wide / 44 mm thick; internal 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
 };
