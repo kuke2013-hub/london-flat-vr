@@ -79,6 +79,10 @@ The entrance door is a custom **1,538 mm wide** leaf (+500 mm vs 1,038 mm in v0.
 
 The user requested all doors **10 cm shorter than v0.16**, so all door leaves are now **2.081 m (2081 mm) high**, independent of the **confirmed 2.10 m** ceiling. The prior 81 mm ceiling intersection is resolved; an opaque white **19 mm header** spans from each door top to the ceiling, casting shadows consistently with other solid wall sections. Door widths and thicknesses remain the custom **1.538 m / 44 mm entrance**, and **0.762 m / 35 mm internal doors**, including two 0.762 m reception leaves. Entrance opening and adjusted kitchen-side entrance recess remain unchanged. Preserve the 90% VR viewer scale, confirmed left-stick headset-relative movement and right-stick snap turns, pure-white wall and ceiling finishes, and neutral ambient lighting. This remains a virtual proportion model, not a physical door-frame or fire-safety plan.
 
-## Current geometry — v0.18
+## Previous geometry — v0.18 (superseded by v0.19)
 
 Door leaf height is now **2.031 m**, 50 mm shorter than v0.17. The confirmed ceiling remains **2.10 m**, with a white 69 mm header above the doors. All widths, wall positions, materials, lighting, viewer scale and controls remain unchanged.
+
+## Current geometry — v0.19
+
+At the user's corrected request (10 cm, not 5 cm), all door leaves are **1.931 m (1931 mm) high**, exactly **100 mm shorter** than v0.18's 2.031 m. The confirmed ceiling height remains **2.10 m**, leaving **169 mm** for each existing opaque white doorway header. Entrance width **1.538 m** and thickness **44 mm**, internal width **0.762 m** and thickness **35 mm**, entrance recess, wall and floor geometry, finishes and lighting, 90%-scale Quest viewer rig, and both working joystick controls remain unchanged.
