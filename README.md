@@ -35,7 +35,7 @@ The prior experiments remain untouched in [wood-box-vr](https://github.com/kuke2
 
 Files: `index.html` (Three.js/WebXR/Rapier engine, room rendering, desktop plan and walkthrough) and `apartment/layout.js` (editable coordinates and architectural geometry).
 
-The supplied Clephane Road estate-agent plan states **52.58 m² gross internal area** and **5.11 m² gross balcony area**. Its reception, kitchen and bedroom dimensions guide provisional scaling. The shell includes a tapered exterior wall, interior rooms, gaps for internal doors, floor-to-ceiling reception and bedroom glazing, pale timber flooring, cream bedroom carpet, and grey kitchen flooring. Balconies and outdoor scenery are not modelled. Ceiling height (2.50 m), thicknesses, window framing and door swings **are not measured**.
+The supplied Clephane Road estate-agent plan states **52.58 m² gross internal area** and **5.11 m² gross balcony area**. Its reception, kitchen and bedroom dimensions guide provisional scaling. The shell includes a tapered exterior wall, interior rooms, gaps for internal doors, floor-to-ceiling reception and bedroom glazing, pale timber flooring, cream bedroom carpet, and grey kitchen flooring. Balconies and outdoor scenery are not modelled. Ceiling height is **2.30 m from finished floor to ceiling, confirmed by the resident on 16 October 2026**. Wall thicknesses, window framing and door swings remain provisional.
 
 **Desktop:** Open the published GitHub Pages URL. Plan view uses drag to pan and scroll to zoom. Use *Walk inside* for WASD movement; click the scene to enable mouse look, press Esc to unlock. *Reset position* returns to the corridor. Performance counters are displayed.
 
@@ -44,3 +44,9 @@ The supplied Clephane Road estate-agent plan states **52.58 m² gross internal a
 **To publish with GitHub Pages:** Repository → Settings → Pages → Build and deployment → Deploy from a branch → `main` / `/(root)` → Save. When Pages is deployed, the expected address is https://kuke2013-hub.github.io/london-flat-vr/ .
 
 **Testing state:** JavaScript syntax and source commits checked. Desktop browser execution and actual Quest 3 VR performance still require testing; this file does not claim that VR has been tested.
+
+## Confirmed VR behaviour — preserve during all future edits
+
+As of shell **v0.6**, the user has tested and confirmed that both Quest 3 joysticks work correctly. **Do not regress this:** the left joystick moves relative to the combined real headset orientation and right-stick snap-turn yaw, updating immediately after each 30° snap turn; its axes are standard (forward/up moves forward, back moves backward, left/right strafe). The right joystick performs 30° snap turns around the tracked head position. Do not replace the current v0.6 locomotion implementation with older movement handlers when modifying geometry, lighting or controls.
+
+**Confirmed ceiling height:** 2.30 metres measured from finished floor to ceiling. Architectural heights should be generated from `PLAN.ceilingHeight` rather than hardcoded 2.50 m.
