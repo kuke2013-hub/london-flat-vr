@@ -345,6 +345,59 @@ function windowPane(spec){
  handle.position.set(mid.x,1.02,mid.y);handle.castShadow=true;architectural.add(handle);
 }
 PLAN.glazing.forEach(windowPane);
+// Photo-based lightweight fixtures; positions are provisional until front-on measurements arrive.
+// Fixture-local +Z points towards the living room from the long angled wall beside the window.
+function fixtureMount(a,b,alongM){
+ const av=m(a),bv=m(b),d=bv.clone().sub(av),len=d.length();
+ const mount=new THREE.Group();const t=THREE.MathUtils.clamp(alongM/len,0,1);
+ mount.position.set(av.x+d.x*t,0,av.y+d.y*t);
+ mount.rotation.y=-Math.atan2(d.y,d.x);
+ architectural.add(mount);return mount;
+}
+function fixtureBox(parent,material,w,h,d,x,y,z,shadow=true){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+ mesh.position.set(x,y,z);mesh.castShadow=shadow;mesh.receiveShadow=shadow;parent.add(mesh);
+ return mesh;
+}
+const rad=PLAN.fixtures.receptionRadiator;
+if(rad){
+ const mount=fixtureMount(rad.wallA,rad.wallB,rad.startM+rad.widthM/2);
+ const front=PLAN.wallOuter/2+.072;
+ // White wall radiator: eight evenly spaced flat horizontal bands, side rails and exposed supply pipes.
+ fixtureBox(mount,radiatorMat,rad.widthM-.025,rad.heightM-.055,.025,0,rad.bottomM+rad.heightM/2,front-.024);
+ for(let i=0;i<8;i++){
+  const y=rad.bottomM+.044+i*(rad.heightM-.090)/7;
+  fixtureBox(mount,radiatorMat,rad.widthM-.012,.064,.038,0,y,front+.005);
+ }
+ for(const x of [-rad.widthM/2+.012,rad.widthM/2-.012])
+  fixtureBox(mount,radiatorMat,.025,rad.heightM-.055,.042,x,rad.bottomM+rad.heightM/2,front+.006);
+ const pipeMat=new THREE.MeshStandardMaterial({color:'#e5ded2',roughness:.60,metalness:.12});
+ for(const side of [-1,1]){
+  const x=side*(rad.widthM/2-.084),height=rad.bottomM+.055;
+  const pipe=new THREE.Mesh(new THREE.CylinderGeometry(.010,.010,height,8),pipeMat);
+  pipe.position.set(x,height/2+.010,front-.006);
+  pipe.castShadow=true;mount.add(pipe);
+  fixtureBox(mount,plateMat,.040,.028,.042,x,rad.bottomM+.022,front+.006);
+ }
+}
+for(const plate of PLAN.fixtures.receptionPlates){
+ const mount=fixtureMount(plate.wallA,plate.wallB,plate.alongM);
+ const z=PLAN.wallOuter/2+.012;
+ const isSocket=plate.type==='doubleSocket',w=isSocket?.177:.145,h=isSocket?.092:.098;
+ fixtureBox(mount,plateMat,w,h,.013,0,plate.heightM,z);
+ fixtureBox(mount,skirtingMat,w-.014,h-.014,.004,0,plate.heightM,z+.009,false);
+ if(isSocket){
+  // Tiny simplified UK double socket symbols on a brushed metal plate.
+  for(const x of [-.044,.044]){
+   fixtureBox(mount,insetMat,.010,.014,.002,x,plate.heightM+.014,z+.014,false);
+   fixtureBox(mount,insetMat,.009,.013,.002,x-.020,plate.heightM-.012,z+.014,false);
+   fixtureBox(mount,insetMat,.009,.013,.002,x+.020,plate.heightM-.012,z+.014,false);
+  }
+ }else{
+  for(const x of [-.032,.032])
+   fixtureBox(mount,plateMat,.021,.030,.009,x,plate.heightM,z+.019,false);
+ }
+}
 function doorPanel(s){
  const hinge=m(s.a),end=m(s.b);const dir=end.clone().sub(hinge);let theta=Math.atan2(dir.y,dir.x);
  if(s.open)theta+=s.swing||0;
