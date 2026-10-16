@@ -107,10 +107,10 @@ export const PLAN = {
     // Standard-sized model leaves. These openings were adjusted to fit the leaf widths.
     // The front door is closed; the internal room doors are shown open.
     { id:'front', name:'Front entrance door', kind:'entrance', a:[ENTRANCE_LEFT_X,700],b:[605,700],open:false },
-    { id:'living-left',name:'Reception double door, left leaf', kind:'internal', a:[RECEPTION_LEFT_X,568],b:[RECEPTION_JOIN_X,568],open:true,swing:-1.07 },
-    { id:'living-right',name:'Reception double door, right leaf',kind:'internal',a:[RECEPTION_RIGHT_X,568],b:[RECEPTION_JOIN_X,568],open:true,swing:1.07 },
-    { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
-    { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
+    { id:'living-left',name:'Reception double door, left leaf', kind:'internal', a:[RECEPTION_LEFT_X,568],b:[RECEPTION_JOIN_X,568],open:true,swing:-Math.PI/2 },
+    { id:'living-right',name:'Reception double door, right leaf',kind:'internal',a:[RECEPTION_RIGHT_X,568],b:[RECEPTION_JOIN_X,568],open:true,swing:Math.PI/2 },
+    { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:Math.PI/2 },
+    { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:Math.PI/2 }
   ],
   referenceNotes: 'v0.24 FIXES the broken kitchen/entrance geometry originating in v0.16 (oversize 1538 mm front door shifted the kitchen corner). The kitchen/entrance exterior footprint, room polygons, wall segments and entrance door positions are EXACTLY restored from v0.15, the last intact rectangular kitchen baseline. Door leaf height remains the v0.19 agreed 1931 mm, ceiling remains 2100 mm. Entrance is 1038 mm wide to fit the restored opening. The original radiator remains at x250 beside the reception window; two separate warm-white switches and a brushed-metal double socket are grouped with centres 0.40m above the floor, 20cm higher than v0.27, on the kitchen-facing wall, as in the supplied reference photo. Thin skirting is unchanged. All measurements remain provisional.'
 };
