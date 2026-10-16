@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.3</title>
+<title>London Flat VR · Architectural Shell v0.4</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
@@ -16,14 +16,14 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.3</span></h1>
- <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Summer sunlight and window-frame shadows · no furniture or outside scenery yet.</div>
+ <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.4</span></h1>
+ <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Corrected room-blocking sunlight and window-frame shadows · no furniture or outside scenery yet.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><select id="sun-time" aria-label="June sunlight time" title="June 21 afternoon lighting (BST)"><option value="15">June 3 pm</option><option value="16" selected>June 4 pm</option><option value="17">June 5 pm</option></select><span id="vr-slot"></span></div>
  <div id="status">Preparing Three.js and Rapier…</div>
  <div id="data"><strong>Finishes:</strong> pale wood / cream bedroom carpet / grey kitchen floor / light brown doors.<br><strong>Provisional:</strong> 2.50 m ceiling, framing, thicknesses and door swings. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
-<div id="footer">VR eye level calibrated to about 1.74 m for a 1.85 m tall person; right stick snap-turns 30°. Glazing details are provisional until reference photos.</div>
+<div id="footer">Quest: left stick navigation corrected; right stick snap-turns 30°. Ceiling and opaque walls block direct sunlight; glazing remains open to it.</div>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -66,11 +66,10 @@ sunlight.shadow.camera.top = 8.5;
 sunlight.shadow.camera.bottom = -8.5;
 sunlight.target.position.set(0,0.5,0);
 scene.add(sunlight.target,sunlight);
-// These are inexpensive artist-controlled indirect fills, not a costly real-time GI calculation.
-const floorBounce = new THREE.PointLight(0xffddb2,0.40,7,2);
-floorBounce.position.set(-2.5,0.6,-0.3);scene.add(floorBounce);
-const skyBounce = new THREE.PointLight(0xcce6ff,0.23,9,2);
-skyBounce.position.set(2.2,2.2,0.3);scene.add(skyBounce);
+// The previous shadowless point-light "bounces" illuminated other rooms through
+// opaque walls. Use only subdued hemisphere/ambient fill, which represents
+// diffuse indirect daylight without producing a false direct light patch.
+// We can add baked, room-local reflected light after the architecture is measured.
 
 // Approximate solar position for 21 June over Islington. North on the supplied plan
 // points upper-right: pixel map north ≈ (+0.58,-0.815). Map pixel Y becomes world Z.
@@ -235,8 +234,9 @@ function doorPanel(s){
  const center=hinge.clone().addScaledVector(dest,.5);
  const mesh=new THREE.Mesh(new THREE.BoxGeometry(length,H-.34,.038),doorMat);
  mesh.position.set(center.x,(H-.34)/2,center.y);mesh.rotation.y=-theta;mesh.castShadow=true;mesh.receiveShadow=true;architectural.add(mesh);
- // A flat frame above every interior opening, and simple hinges/handle on the slab.
- const sillH=.12;beam(s.a,s.b,H-.19,sillH,.085);
+ // Solid header all the way to the ceiling. The earlier thin top strip left a
+ // physically impossible unlit gap that let the sun travel through partition tops.
+ beam(s.a,s.b,H-.34,.34,.085);
  const handle=new THREE.Mesh(new THREE.SphereGeometry(.032,8,6),new THREE.MeshStandardMaterial({color:'#a8a198',metalness:.42,roughness:.42}));
  handle.position.set(hinge.x+dest.x*.85,1.0,hinge.y+dest.y*.85);handle.castShadow=true;architectural.add(handle);
  if(!s.open){
@@ -246,7 +246,17 @@ function doorPanel(s){
 }
 PLAN.doors.forEach(doorPanel);
 const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#f7f7f3',side:THREE.DoubleSide,roughness:1}));
-ceiling.position.y=H;ceiling.receiveShadow=true;roof.add(ceiling);
+ceiling.position.y=H;
+// CRITICAL: the ceiling must CAST shadows, not just receive them. Without this,
+// afternoon sunlight enters from above and reaches the bedroom despite opaque
+// walls. With it, direct sunlight reaches the floor only via genuine openings.
+ceiling.castShadow=true;ceiling.receiveShadow=true;roof.add(ceiling);
+// In plan mode the roof stays in the shadow pass but writes neither colour nor
+// depth in the main camera pass, so the floor plan remains visible from above.
+function setCeilingVisibleInCamera(show){
+ ceiling.material.colorWrite=show;
+ ceiling.material.depthWrite=show;
+}
 // Minimal vertical cutaway outline helper in overhead view. Not furniture or exterior scenery.
 const spawn=m(PLAN.spawn);
 const marker=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.012,24),new THREE.MeshBasicMaterial({color:'#168d85'}));
@@ -263,7 +273,7 @@ const vrButton=VRButton.createButton(renderer,{requiredFeatures:['local-floor'],
 vrButton.textContent='ENTER QUEST VR';$('vr-slot').appendChild(vrButton);
 function switchMode(next){
  if(renderer.xr.isPresenting)return;
- mode=next;const plan=mode==='plan';roof.visible=!plan;labels.visible=plan;
+ mode=next;const plan=mode==='plan';roof.visible=true;setCeilingVisibleInCamera(!plan);labels.visible=plan;
  planControls.enabled=plan;renderer.domElement.style.cursor=plan?'grab':'crosshair';
  $('overhead').classList.toggle('active',plan);$('walk').classList.toggle('active',!plan);
  if(!plan){if(document.pointerLockElement===renderer.domElement)document.exitPointerLock(); status('Walk mode · click the scene to look around; WASD to move.');}
@@ -372,12 +382,15 @@ function updateVR(dt){
   const xrCam=renderer.xr.getCamera();const forward=new THREE.Vector3();xrCam.getWorldDirection(forward);
   forward.y=0;if(forward.lengthSq()<.0001)forward.set(0,0,-1);forward.normalize();
   const right=new THREE.Vector3(-forward.z,0,forward.x);
-  const speed=1.5*dt;const requested=right.multiplyScalar(side).addScaledVector(forward,-forwardAxis).multiplyScalar(speed);
+  // Correct both inverted locomotion axes reported on Quest 3 in v0.3.
+  // Positive real-world "right" and "forward" follow the headset's facing.
+  // Reverse the v0.3 movement result (without affecting the right stick).
+  const speed=1.5*dt;const requested=right.multiplyScalar(-side).addScaledVector(forward,forwardAxis).multiplyScalar(speed);
   moveAvatar(requested.x,requested.z);
  }
 }
 renderer.xr.addEventListener('sessionstart',()=>{
- roof.visible=true;labels.visible=false;planControls.enabled=false;
+ roof.visible=true;setCeilingVisibleInCamera(true);labels.visible=false;planControls.enabled=false;
  xrNeedsHeightCalibration=true;snapTurnReady=true;
  sunlight.shadow.mapSize.set(1024,1024);sunlight.shadow.map?.dispose();sunlight.shadow.map=null;
  status('Quest VR session active. Left thumbstick moves, right thumbstick snap-turns. Calibrating eye height from headset tracking…');
@@ -396,7 +409,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell ready. June sunlight casts window-frame shadows. Quest VR: left stick move, right stick 30° snap-turn, eye height calibrated on entry.');
+switchMode('plan');status('Shell ready. Roof and walls now block direct sunlight; Quest left-stick directions corrected and right-stick snap-turn preserved.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
