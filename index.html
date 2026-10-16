@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#27211c">
-<title>London Flat VR · Architectural Shell v0.30</title>
+<title>London Flat VR · Architectural Shell v0.31</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
@@ -26,8 +26,8 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.30</span></h1>
- <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced chocolate three-seat sofa and four-part balcony glazing.</div>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.31</span></h1>
+ <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, thick pale rug and four-part balcony glazing.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
  <div id="solar-panel">
   <div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
@@ -51,7 +51,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.21.0/dist/rapier.mjs';
 import { PLAN } from './apartment/layout.js';
-import { createSofa } from './apartment/sofa.js';
+import { createSofa, createSofaRug } from './apartment/sofa.js';
 
 const $ = id => document.getElementById(id);
 const status = s => { $('status').textContent=s; };
@@ -433,17 +433,37 @@ if(photoSofa){
  const angle=-Math.atan2(tangent.y,tangent.x);
  const centre=a.clone().addScaledVector(tangent,photoSofa.fromWindowM+photoSofa.widthM/2)
   .addScaledVector(inward,photoSofa.wallClearanceM+photoSofa.depthM/2);
- const model=createSofa(THREE,{width:photoSofa.widthM,depth:photoSofa.depthM});
- model.position.set(centre.x,0,centre.y);model.rotation.y=angle;
- architectural.add(model); // Sofa is visible in plan, desktop walk and Quest.
+ const rugSpec=PLAN.furniture?.receptionRug;
+ // Lay the light, raised carpet BELOW the sofa (not a decal), with its near edge
+ // tucked under the back feet and its far edge projecting 1.08 m into the room.
+ if(rugSpec){
+  const rugCentre=a.clone().addScaledVector(tangent,photoSofa.fromWindowM+photoSofa.widthM/2)
+   .addScaledVector(inward,rugSpec.fromWallM+rugSpec.depthM/2);
+  const rug=createSofaRug(THREE,{width:rugSpec.widthM,depth:rugSpec.depthM,
+   thicknessM:rugSpec.thicknessM});
+  rug.position.set(rugCentre.x,0,rugCentre.y);rug.rotation.y=angle;
+  rug.userData.placement={frontProjectionM:Number(
+   (rugSpec.fromWallM+rugSpec.depthM-photoSofa.wallClearanceM-photoSofa.depthM).toFixed(2))};
+  architectural.add(rug); // Both plan and eye-level views; rug has no collider.
+ }
+ // Build the original silhouette, then shrink ALL dimensions 10% together.
+ // The physical PLAN values and Rapier/player colliders use the NEW real size.
+ const factor=photoSofa.scale||1;
+ const model=createSofa(THREE,{width:photoSofa.widthM/factor,depth:photoSofa.depthM/factor});
+ model.scale.setScalar(factor);
+ const rugHeight=rugSpec?.thicknessM||0;
+ model.position.set(centre.x,rugHeight,centre.y);model.rotation.y=angle;
+ architectural.add(model); // Sofa visible in plan, desktop walk and Quest.
  // Stationary furniture blocks joystick/WASD navigation as well as Rapier bodies.
  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angle);
- world.createCollider(RAPIER.ColliderDesc.cuboid(photoSofa.widthM/2,.38,photoSofa.depthM/2)
-  .setTranslation(centre.x,.38,centre.y).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}).setFriction(.85),staticBody);
+ const halfColliderHeight=photoSofa.heightM/2;
+ world.createCollider(RAPIER.ColliderDesc.cuboid(photoSofa.widthM/2,halfColliderHeight,photoSofa.depthM/2)
+  .setTranslation(centre.x,halfColliderHeight+rugHeight,centre.y)
+  .setRotation({x:q.x,y:q.y,z:q.z,w:q.w}).setFriction(.85),staticBody);
  sofaCollision={x:centre.x,z:centre.y,c:Math.cos(angle),s:Math.sin(angle),
   hw:photoSofa.widthM/2,hd:photoSofa.depthM/2};
  model.userData.placement={distanceFromWindowM:photoSofa.fromWindowM,
-  facing:'kitchen',referenceWall:photoSofa.wallA};
+  facing:'kitchen',referenceWall:photoSofa.wallA,uniformScale:factor};
 }
 // v0.22: annotated photo-floorplan fixtures only; no walls or window framing altered.
 // Both mounting surfaces face the living-room interior, selected by interiorPoint.
@@ -754,7 +774,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.30 ready · Chocolate three-seat sofa by the big window, improved four-part balcony framing · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.31 ready · 10% smaller warm-grey sofa with polished chrome and a thick pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
