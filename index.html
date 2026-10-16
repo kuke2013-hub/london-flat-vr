@@ -397,15 +397,30 @@ function windowPane(spec){
  // horizontal frame, casting recognizable sun bands across the wood floor.
  if(spec.name==='Reception balcony glazing'){
   const p=(t)=>[spec.a[0]+(spec.b[0]-spec.a[0])*t,spec.a[1]+(spec.b[1]-spec.a[1])*t];
-  for(const [t0,t1] of [[0,0.50],[0.74,1]]){
-   beam(p(t0),p(t1),0.88,0.055,0.07);
+  // Four sections from the newly supplied flat photographs. The second section
+  // is the glazed balcony door. Solid lower panels/rails are white, matching the photo.
+  const divisions=[0,...spec.mullions,1];
+  for(let i=0;i<divisions.length-1;i++){
+   const left=p(divisions[i]+.007),right=p(divisions[i+1]-.007);
+   beam(left,right,.16,.04,.070);
+   rectangularWall(left,right,.135,.035,frameMat,.073,false);
   }
-  // A slightly raised balcony door threshold; still nearly floor-to-ceiling glazing.
+  // Slim frame around the moving glazed door panel, without blocking daylight.
+  const d0=divisions[spec.doorSection],d1=divisions[spec.doorSection+1];
+  for(const t of [d0+.013,d1-.013]){
+   const point=p(t),bar=new THREE.Mesh(new THREE.BoxGeometry(.028,H-.22,.034),frameMat);
+   bar.position.set(point[0]+.017,(H-.22)/2+.17,point[1]);
+   bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
+  }
+  // The original door threshold and transparent glass remain.
   beam(spec.a,spec.b,0.065,0.07,0.095);
  }
  // Small discreet door handles at eye / waist level, not a speculative detailed door style.
  const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#bdb3a6',metalness:.75,roughness:.3}));
- handle.position.set(mid.x,1.02,mid.y);handle.castShadow=true;architectural.add(handle);
+ const t=spec.name==='Reception balcony glazing'?spec.mullions[1]-.035:.5;
+ handle.position.set(a.x+(b.x-a.x)*t+(spec.name==='Reception balcony glazing'?.054:0),
+  1.02,a.y+(b.y-a.y)*t);
+ handle.castShadow=true;architectural.add(handle);
 }
 PLAN.glazing.forEach(windowPane);
 // Real 3D sofa based on resident's photographs, mounted against the angled white
@@ -588,6 +603,14 @@ function segmentDistSq(x,z,a,b){
 function validPlayer(x,z){
  // Collision-aware ground-plane navigation; fixed Rapier colliders use the same segments.
  for(const s of ALL_SOLIDS){const r=.22+s.width*.5;if(segmentDistSq(x,z,s.a,s.b)<r*r)return false;}
+ if(sofaCollision){
+  const dx=x-sofaCollision.x,dz=z-sofaCollision.z;
+  const lx=sofaCollision.c*dx-sofaCollision.s*dz;
+  const lz=sofaCollision.s*dx+sofaCollision.c*dz;
+  const avatarRadius=.21;
+  if(Math.abs(lx)<sofaCollision.hw+avatarRadius &&
+     Math.abs(lz)<sofaCollision.hd+avatarRadius)return false;
+ }
  return true;
 }
 function moveAvatar(dx,dz){
