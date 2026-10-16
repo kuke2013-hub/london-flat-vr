@@ -258,6 +258,30 @@ function rectangularWall(a,b,height,thick,material,yCenter=height/2,withCollider
 }
 // Full-height opaque wall tops intentionally enter the roof plane by 20 mm; no razor-edge light seams.
 for(const w of PLAN.walls) rectangularWall(w.a,w.b,H+WALL_TOP_SEAL_M,w.kind==='outer'?PLAN.wallOuter:PLAN.wallInner,w.kind==='outer'?solidMat:edgeMat,(H+WALL_TOP_SEAL_M)/2);
+// Photo reference: painted 11 cm skirting/baseboards run along solid walls and stop at door openings.
+function addSkirting(a,b,thick){
+ const v=m(a),w=m(b),delta=w.clone().sub(v),len=delta.length();if(len<.015)return;
+ const group=new THREE.Group();
+ group.position.set((v.x+w.x)/2,0,(v.y+w.y)/2);
+ group.rotation.y=-Math.atan2(delta.y,delta.x);
+ for(const part of [
+  {height:.108,depth:thick+.030,y:.054,material:skirtingMat},
+  {height:.013,depth:thick+.042,y:.112,material:skirtingCapMat}
+ ]){
+  const strip=new THREE.Mesh(new THREE.BoxGeometry(len,part.height,part.depth),part.material);
+  strip.position.y=part.y;strip.castShadow=true;strip.receiveShadow=true;group.add(strip);
+ }
+ architectural.add(group);
+}
+for(const w of PLAN.walls)addSkirting(w.a,w.b,w.kind==='outer'?PLAN.wallOuter:PLAN.wallInner);
+// Thin warm timber transition where the reception wood meets the grey kitchen tile.
+const kitchenTransition=PLAN.fixtures?.kitchenThreshold;
+if(kitchenTransition){
+ const a=m(kitchenTransition.a),b=m(kitchenTransition.b),v=b.clone().sub(a);
+ const strip=new THREE.Mesh(new THREE.BoxGeometry(v.length(),.012,.046),thresholdMat);
+ strip.position.set((a.x+b.x)/2,.013,(a.y+b.y)/2);
+ strip.rotation.y=-Math.atan2(v.y,v.x);strip.receiveShadow=true;architectural.add(strip);
+}
 function beam(a,b,y,height,thick=.044){rectangularWall(a,b,height,thick,frameMat,y+height/2,false);}
 function windowPane(spec){
  const a=m(spec.a),b=m(spec.b);const len=a.distanceTo(b);const mid=a.clone().add(b).multiplyScalar(.5);
