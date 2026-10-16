@@ -80,10 +80,27 @@ export const PLAN = {
   ],
   glazing: [
     // Full-height glazed wall to reception balcony. The balcony itself is not yet modelled.
-    { a:[179,145],b:[179,460],name:'Reception balcony glazing', mullions:[0.50,0.74] },
+    { a:[179,145],b:[179,460],name:'Reception balcony glazing', mullions:[0.21,0.48,0.75], doorSection:1 }, // four vertical units; balcony door second from left in plan
     // Full-height French doors / glazing to the small bedroom balcony.
     { a:[1141,458],b:[1141,581],name:'Bedroom balcony glazing', mullions:[0.50] }
   ],
+  // v0.30 photographic furniture: position is measured ALONG the long white wall
+  // to the RIGHT when looking towards the living-room balcony glazing.
+  // The user described ~1 m from the big window, with seats facing towards the kitchen.
+  // This is movable furniture, never an alteration to the architectural footprint.
+  furniture: {
+    sofa: {
+      kind:'chocolate-three-seater',
+      wallA:[179,145], wallB:[1141,411],
+      fromWindowM:0.90, // gap along white wall between glazing corner and left end of sofa
+      widthM:2.42,
+      depthM:1.00,
+      wallClearanceM:0.08, // back just off white wall and skirting
+      heightM:0.78,
+      faces:'towards kitchen and centre of reception',
+      reference:'supplied front, side, overhead sofa reference + IMG_1059 and IMG_1065 room photos'
+    }
+  },
   // v0.22: coordinates follow the user's RED ANNOTATIONS on the original floor plan.
   // Facing the big window from inside: radiator on short vertical wall x=250, y=460..568
   // (its living-room face); switch/socket plates on the horizontal kitchen-top wall y=568.
