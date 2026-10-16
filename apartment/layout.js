@@ -7,7 +7,7 @@
 // Derive door aperture positions from the project scale and the user's supplied leaf sizes.
 // These remain modelling assumptions, not measurements of the original flat.
 const PX_PER_METRE = 85.05;
-const FRONT_DOOR_WIDTH = 1.538; // v0.16: 50 cm wider than the previously modelled 1.038 m entrance
+const FRONT_DOOR_WIDTH = 1.038; // user-requested +20 cm over the v0.14 entrance width; exceeds typical widths in reference table
 const INTERNAL_DOOR_WIDTH = 0.762;
 const ENTRANCE_LEFT_X = 605 - FRONT_DOOR_WIDTH * PX_PER_METRE;
 const RECEPTION_JOIN_X = 562.5;
@@ -24,10 +24,10 @@ export const PLAN = {
   balconyAreaM2: 5.11,      // source's larger balcony; not modelled yet
   pxPerMetre: PX_PER_METRE,        // calibrated to printed kitchen/reception widths; approximate
   centre: [654, 447],
-  ceilingHeight: 2.10,      // CONFIRMED virtual room ceiling height; intentionally unchanged by taller doors
-  doorHeight: 1.931,         // v0.19: exactly 10 cm shorter than v0.18; ceiling remains 2.10 m
+  ceilingHeight: 2.10,      // CONFIRMED preferred virtual ceiling height: lock at 2.10 m unless user requests otherwise
+  doorHeight: 1.931,         // user-confirmed 1.931 m door height from v0.19; preserve the correct v0.15 floor footprint
   doorStandards: {
-    entrance: {width: FRONT_DOOR_WIDTH, thickness: 0.044}, // custom 1538 mm wide entrance leaf, 44 mm thick
+    entrance: {width: FRONT_DOOR_WIDTH, thickness: 0.044}, // custom 1038 mm wide entrance leaf, 44 mm thick
     internal: {width: INTERNAL_DOOR_WIDTH, thickness: 0.035} // model 762 mm leaf, standard 35 mm thick
   },
   wallOuter: 0.19,          // provisional wall construction thicknesses
@@ -36,13 +36,13 @@ export const PLAN = {
   // Floorplate outline follows the main dwelling and ENTRANCE RECESS, excluding balconies.
   outline: [
     [179,145], [1141,411], [1141,659], [605,659], [605,700],
-    [ENTRANCE_LEFT_X,700], [ENTRANCE_LEFT_X,756], [250,756], [250,460], [179,460]
+    [495,700], [495,756], [250,756], [250,460], [179,460]
   ],
   rooms: [
     { id:'reception', name:'Reception room', subtitle:'5.23 × 3.65 m (plan)', finish:'wood',
       points:[[179,146],[625,268],[RECEPTION_RIGHT_X,567],[RECEPTION_LEFT_X,567],[250,567],[250,460],[179,460]], label:[410,389] },
     { id:'kitchen', name:'Kitchen', subtitle:'2.89 × 2.10 m (plan)', finish:'tile',
-      points:[[250,568],[495,568],[495,662],[ENTRANCE_LEFT_X,662],[ENTRANCE_LEFT_X,756],[250,756]], label:[371,661] },
+      points:[[250,568],[495,568],[495,756],[250,756]], label:[371,661] },
     { id:'bathroom', name:'Bathroom', subtitle:'dimensions provisional', finish:'bath',
       points:[[633,320],[701,290],[774,310],[774,569],[633,569]], label:[706,440] },
     { id:'bedroom', name:'Bedroom', subtitle:'4.46 × 3.60 m (plan)', finish:'carpet',
@@ -59,15 +59,15 @@ export const PLAN = {
     { a:[1141,581],b:[1141,659],kind:'outer' },
     { a:[1141,659],b:[605,659],kind:'outer' },
     { a:[605,659],b:[605,700],kind:'outer' },
-    { a:[ENTRANCE_LEFT_X,700],b:[ENTRANCE_LEFT_X,756],kind:'outer' },
-    { a:[ENTRANCE_LEFT_X,756],b:[250,756],kind:'outer' },
+    { a:[495,700],b:[495,756],kind:'outer' },
+    { a:[495,756],b:[250,756],kind:'outer' },
     { a:[250,756],b:[250,460],kind:'outer' },
     { a:[250,460],b:[179,460],kind:'outer' },
     // Between kitchen, reception and entrance hallway.
     { a:[250,568],b:[310,568],kind:'inner' },
     { a:[436,568],b:[RECEPTION_LEFT_X,568],kind:'inner' },
     { a:[RECEPTION_RIGHT_X,568],b:[630,568],kind:'inner' },
-    { a:[495,568],b:[495,662],kind:'inner' }, // bottom corner now returns toward widened entrance at y=662
+    { a:[495,568],b:[495,700],kind:'inner' },
     { a:[495,662],b:[ENTRANCE_LEFT_X,662],kind:'inner' },
     { a:[ENTRANCE_LEFT_X,662],b:[ENTRANCE_LEFT_X,700],kind:'inner' },
     // Bathroom walls; the opening from x=685 is 762 mm at the present drawing scale.
@@ -102,12 +102,11 @@ export const PLAN = {
   doors: [
     // Standard-sized model leaves. These openings were adjusted to fit the leaf widths.
     // The front door is closed; the internal room doors are shown open.
-    // This nonstandard-width entrance occupies a widened lower hall recess; nearby kitchen corner was adjusted.
     { id:'front', name:'Front entrance door', kind:'entrance', a:[ENTRANCE_LEFT_X,700],b:[605,700],open:false },
     { id:'living-left',name:'Reception double door, left leaf', kind:'internal', a:[RECEPTION_LEFT_X,568],b:[RECEPTION_JOIN_X,568],open:true,swing:-1.07 },
     { id:'living-right',name:'Reception double door, right leaf',kind:'internal',a:[RECEPTION_RIGHT_X,568],b:[RECEPTION_JOIN_X,568],open:true,swing:1.07 },
     { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
   ],
-  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. CONFIRMED virtual ceiling 2.10 m unchanged. Door leaves set to 1931 mm (100 mm shorter than v0.18), sitting 169 mm beneath the unchanged 2.10 m ceiling. Entrance widened another 500 mm to custom 1538 mm / 44 mm thick; lower hall recess and kitchen corner were adjusted. Internal leaves remain 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
+  referenceNotes: 'v0.24 FIXES the broken kitchen/entrance geometry originating in v0.16 (oversize 1538 mm front door shifted the kitchen corner). The kitchen/entrance exterior footprint, room polygons, wall segments and entrance door positions are EXACTLY restored from v0.15, the last intact rectangular kitchen baseline. Door leaf height remains the v0.19 agreed 1931 mm, ceiling remains 2100 mm. Entrance is 1038 mm wide to fit the restored opening. The radiator at x250 beside the reception window, low sockets above kitchen skirting, and thin skirting are photo-based decorative additions. All measurements remain provisional.'
 };
