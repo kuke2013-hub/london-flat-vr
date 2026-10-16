@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.4</title>
+<title>London Flat VR · Architectural Shell v0.5</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
@@ -16,14 +16,14 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.4</span></h1>
- <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Corrected room-blocking sunlight and window-frame shadows · no furniture or outside scenery yet.</div>
+ <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.5</span></h1>
+ <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative left-stick movement · no furniture or outside scenery yet.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><select id="sun-time" aria-label="June sunlight time" title="June 21 afternoon lighting (BST)"><option value="15">June 3 pm</option><option value="16" selected>June 4 pm</option><option value="17">June 5 pm</option></select><span id="vr-slot"></span></div>
  <div id="status">Preparing Three.js and Rapier…</div>
  <div id="data"><strong>Finishes:</strong> pale wood / cream bedroom carpet / grey kitchen floor / light brown doors.<br><strong>Provisional:</strong> 2.50 m ceiling, framing, thicknesses and door swings. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
-<div id="footer">Quest: left stick navigation corrected; right stick snap-turns 30°. Ceiling and opaque walls block direct sunlight; glazing remains open to it.</div>
+<div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -186,7 +186,13 @@ function collisionSegment(a,b,width){ALL_SOLIDS.push({a:m(a),b:m(b),width});}
 function rectangularWall(a,b,height,thick,material,yCenter=height/2,withCollider=true){
  const v=m(a),w=m(b),d=w.clone().sub(v),len=d.length();if(len<.015)return;
  const rot=-Math.atan2(d.y,d.x);const mesh=new THREE.Mesh(new THREE.BoxGeometry(len,height,thick),material);
- mesh.position.set((v.x+w.x)/2,yCenter,(v.y+w.y)/2);mesh.rotation.y=rot;architectural.add(mesh);
+ mesh.position.set((v.x+w.x)/2,yCenter,(v.y+w.y)/2);mesh.rotation.y=rot;
+ // ALL solid wall sections must cast shadows. This was missing from the
+ // rectangularWall helper in v0.4: the GPU drew visible walls but sunlight
+ // went straight through them, including the wall joining reception to kitchen.
+ // The same helper builds window frames and solid door headers.
+ mesh.castShadow=true;mesh.receiveShadow=true;
+ architectural.add(mesh);
  if(withCollider){const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
   world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,height/2,thick/2).setTranslation(mesh.position.x,yCenter,mesh.position.z).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}).setFriction(.8),staticBody);
   collisionSegment(a,b,thick);
@@ -199,7 +205,10 @@ function windowPane(spec){
  const a=m(spec.a),b=m(spec.b);const len=a.distanceTo(b);const mid=a.clone().add(b).multiplyScalar(.5);
  const rot=-Math.atan2(b.y-a.y,b.x-a.x);
  const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
- glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;glass.receiveShadow=false;architectural.add(glass);
+ glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;
+ // Transparent glass lets sunlight pass. Only opaque mullions, sills, headers,
+ // doors and walls cast directional-light shadows.
+ glass.castShadow=false;glass.receiveShadow=false;architectural.add(glass);
  // Clear glazing still collides: outside balconies are deliberately not built yet.
  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
  world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,H/2,.028).setTranslation(mid.x,H/2,mid.y).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}),staticBody);
@@ -333,12 +342,16 @@ function updateDesktop(dt){
  moveAvatar(q.x*speed,q.z*speed);
 }
 function activeStick(gamepad){
- // Quest Touch controllers generally expose the thumbsticks on axes 2/3.
- // Some WebXR browser mappings only expose two axes.
- const axes=gamepad.axes;
- if(axes.length>=4 && Number.isFinite(axes[2]) && Number.isFinite(axes[3]))return {x:axes[2],y:axes[3]};
- if(axes.length>=2 && Number.isFinite(axes[0]) && Number.isFinite(axes[1]))return {x:axes[0],y:axes[1]};
- return {x:0,y:0};
+ // Meta Quest Touch controllers ordinarily use the standard WebXR thumbstick
+ // at axes 2/3. Some mappings expose it at 0/1; read the moving pair rather
+ // than assuming that a present but unused 2/3 pair is the thumbstick.
+ const a=gamepad.axes||[];
+ const valid=(i,j)=>Number.isFinite(a[i])&&Number.isFinite(a[j]);
+ const primary=valid(2,3)?{x:a[2],y:a[3]}:null;
+ const fallback=valid(0,1)?{x:a[0],y:a[1]}:null;
+ if(primary && (Math.abs(primary.x)>0.12||Math.abs(primary.y)>0.12))return primary;
+ if(fallback && (Math.abs(fallback.x)>0.12||Math.abs(fallback.y)>0.12))return fallback;
+ return primary||fallback||{x:0,y:0};
 }
 let snapTurnReady=true;
 const headBefore=new THREE.Vector3(),headAfter=new THREE.Vector3();
@@ -382,10 +395,13 @@ function updateVR(dt){
   const xrCam=renderer.xr.getCamera();const forward=new THREE.Vector3();xrCam.getWorldDirection(forward);
   forward.y=0;if(forward.lengthSq()<.0001)forward.set(0,0,-1);forward.normalize();
   const right=new THREE.Vector3(-forward.z,0,forward.x);
-  // Correct both inverted locomotion axes reported on Quest 3 in v0.3.
-  // Positive real-world "right" and "forward" follow the headset's facing.
-  // Reverse the v0.3 movement result (without affecting the right stick).
-  const speed=1.5*dt;const requested=right.multiplyScalar(-side).addScaledVector(forward,forwardAxis).multiplyScalar(speed);
+  // STANDARD TOUCH STICK MAPPING, independently derived from camera vectors:
+  // X +1 (stick right) -> strafe toward headset right; X -1 -> left.
+  // Y -1 (stick up/forward) -> move where headset faces; Y +1 -> backward.
+  // The v0.4 handler negated BOTH directions; that reversed the controls.
+  // This code intentionally does not depend on, or modify, snap-turn yaw.
+  const speed=1.5*dt;
+  const requested=forward.multiplyScalar(-forwardAxis).addScaledVector(right,side).multiplyScalar(speed);
   moveAvatar(requested.x,requested.z);
  }
 }
@@ -409,7 +425,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell ready. Roof and walls now block direct sunlight; Quest left-stick directions corrected and right-stick snap-turn preserved.');
+switchMode('plan');status('Shell v0.5 ready. Solid wall shadows enabled; Quest left stick uses standard forward/right directions.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
