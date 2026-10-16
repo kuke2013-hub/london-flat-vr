@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.25</title>
+<meta name="theme-color" content="#27211c">
+<title>London Flat VR · Architectural Shell v0.26</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
-canvas{display:block}#stage{position:fixed;inset:0}#ui{position:fixed;top:14px;left:14px;width:min(360px,calc(100vw - 28px));background:rgba(21,30,35,.88);color:#f2f3f1;border:1px solid #ffffff30;border-radius:13px;padding:14px 16px;z-index:5;backdrop-filter:blur(10px);box-shadow:0 10px 28px #0003}
-h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{font-size:11px;line-height:1.45;color:#ccd6d9;margin-bottom:9px}#controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}button,select{background:#34434b;border:1px solid #ffffff35;border-radius:8px;padding:8px 9px;color:#fafafa;font-size:12px;cursor:pointer}button.active{background:#476d67;border-color:#9cdbd1}button:hover{background:#4e6572}#vr-slot button{background:#7dd9c1!important;color:#0b2221!important;border:0!important;font-weight:700!important}#status{font-size:11px;margin-top:9px;color:#a9c8d1;line-height:1.5}#data{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff25;color:#d6dedc;font-size:11px;line-height:1.5}#data strong{font-weight:650;color:#fff}#footer{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px);z-index:3;padding:8px 12px;border-radius:8px;background:#131a1cce;color:#f6f6f6;text-align:center;font-size:11px;line-height:1.4;pointer-events:none}#footnotes{position:fixed;top:15px;right:15px;z-index:3;background:#101a20b8;color:#eef5f5;border-radius:9px;padding:9px 11px;font:11px/1.6 ui-monospace,SFMono-Regular,monospace}#footnotes span{color:#8ed5bd}@media(max-width:650px){#ui{padding:10px 11px;width:calc(100vw - 20px);top:10px;left:10px}#footnotes{top:auto;right:10px;bottom:65px}#footer{bottom:7px}}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
+canvas{display:block}#stage{position:fixed;inset:0}#ui{position:fixed;top:14px;left:14px;width:min(360px,calc(100vw - 28px));background:rgba(36,29,24,.88);color:#f2f3f1;border:1px solid #ffffff30;border-radius:13px;padding:14px 16px;z-index:5;backdrop-filter:blur(10px);box-shadow:0 10px 28px #0003}
+h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{font-size:11px;line-height:1.45;color:#e4d8c9;margin-bottom:9px}#controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}button,select{background:#473d33;border:1px solid #ffffff35;border-radius:8px;padding:8px 9px;color:#fafafa;font-size:12px;cursor:pointer}button.active{background:#806448;border-color:#e4c18d}button:hover{background:#685340}#vr-slot button{background:#efcc96!important;color:#302116!important;border:0!important;font-weight:700!important}#status{font-size:11px;margin-top:9px;color:#e2cdb6;line-height:1.5}#data{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff25;color:#e2d6c8;font-size:11px;line-height:1.5}#data strong{font-weight:650;color:#fff}#footer{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px);z-index:3;padding:8px 12px;border-radius:8px;background:#221b17ce;color:#f6f6f6;text-align:center;font-size:11px;line-height:1.4;pointer-events:none}#footnotes{position:fixed;top:15px;right:15px;z-index:3;background:#251d18b8;color:#faf3e8;border-radius:9px;padding:9px 11px;font:11px/1.6 ui-monospace,SFMono-Regular,monospace}#footnotes span{color:#edc893}@media(max-width:650px){#ui{padding:10px 11px;width:calc(100vw - 20px);top:10px;left:10px}#footnotes{top:auto;right:10px;bottom:65px}#footer{bottom:7px}}
 /* v0.25 seasonal solar calendar: small controls remain usable before starting Quest VR. */
 #solar-panel{margin-top:10px;padding-top:9px;border-top:1px solid #ffffff25}
-#solar-panel-title{font-size:10px;letter-spacing:.075em;color:#e2e4df;font-weight:650;margin-bottom:7px}
+#solar-panel-title{font-size:10px;letter-spacing:.075em;color:#e8dccc;font-weight:650;margin-bottom:7px}
 #solar-controls{display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap}
-#solar-controls label{display:flex;flex-direction:column;gap:3px;font-size:10px;color:#d5ddd9}
+#solar-controls label{display:flex;flex-direction:column;gap:3px;font-size:10px;color:#e2d6c8}
 #solar-controls label:first-child{flex:1 1 108px}
 #solar-controls label:nth-child(2){flex:0 0 58px}
 #solar-controls label:nth-child(3){flex:0 0 91px}
-#solar-controls select{width:100%;min-width:0;padding:7px 5px;font-size:12px;background:#2c3a3d}
+#solar-controls select{width:100%;min-width:0;padding:7px 5px;font-size:12px;background:#42362c}
 #solar-info{margin-top:7px;font-size:11px;line-height:1.5;color:#dcd3bd;min-height:31px;font-variant-numeric:tabular-nums}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
@@ -26,7 +26,7 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.25</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.26</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative left-stick movement · no furniture or outside scenery yet.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
  <div id="solar-panel">
@@ -41,7 +41,7 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
   <div id="solar-info" aria-live="polite">Calculating the seasonal sun…</div>
  </div>
  <div id="status">Preparing Three.js and Rapier…</div>
- <div id="data"><strong>Finishes:</strong> v0.19 pale wood / cream bedroom carpet / grey kitchen floor / white walls. <strong>New:</strong> white skirting, radiator and electric plates LEFT of the main window beside the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. Seasonal London sun position and daylight time are calculated; plan compass orientation is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+ <div id="data"><strong>Finishes:</strong> warm-ivory walls and ceiling / warm-neutral glass / pale wood / cream bedroom carpet / warm-grey kitchen floor. <strong>Fixtures:</strong> radiator beside the balcony window, two cream switches and a brushed-metal double socket by the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. Seasonal London sun position and daylight time are calculated; plan compass orientation is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
 <div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
@@ -61,7 +61,7 @@ const DOOR_H = PLAN.doorHeight; // 1.931 m doors; 10 cm shorter than v0.18, inde
 if(DOOR_H<=0||H<=0)throw new Error('Door and ceiling heights must be positive.');
 const DOOR_CEILING_OVERLAP = Math.max(0,DOOR_H-H); // Zero in v0.19; door leaves end 169 mm below ceiling.
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#d8d8d6'); // Neutral backdrop instead of blue-grey behind glazing.
+scene.background = new THREE.Color('#e8d8c6'); // Warm ivory background colour; original glass remains in place.
 const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', alpha:false });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -76,8 +76,8 @@ renderer.xr.setFramebufferScaleFactor(1);
 $('stage').appendChild(renderer.domElement);
 // Keep diffuse daylight subordinate to the sun so the frame shadows remain visible.
 // Neutral diffuse lighting: the former blue-tinted hemisphere made pure-white walls appear cyan.
-const skyLight = new THREE.HemisphereLight(0xffffff,0xe4e2de,0.95);scene.add(skyLight);
-const ambientFill = new THREE.AmbientLight(0xffffff,0.16);scene.add(ambientFill);
+const skyLight = new THREE.HemisphereLight(0xfff1de,0xd4bea4,0.95);scene.add(skyLight);
+const ambientFill = new THREE.AmbientLight(0xfff0dd,0.16);scene.add(ambientFill);
 const sunlight = new THREE.DirectionalLight(0xffedca,3.2);
 sunlight.castShadow = true;
 sunlight.shadow.mapSize.set(2048,2048); // Reduced to 1024 during a Quest session.
@@ -110,9 +110,9 @@ const SUN_M_NAMES=['January','February','March','April','May','June','July','Aug
 const SUN_CARDINALS=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
 const SUN_WARM_LOW=new THREE.Color('#ffbd82');
 const SUN_WARM_HIGH=new THREE.Color('#fff5e5');
-const SUN_BG_DAY=new THREE.Color('#ddd9d1');
-const SUN_BG_DUSK=new THREE.Color('#a88f7c');
-const SUN_BG_NIGHT=new THREE.Color('#171411');
+const SUN_BG_DAY=new THREE.Color('#e8d8c6');
+const SUN_BG_DUSK=new THREE.Color('#aa805c');
+const SUN_BG_NIGHT=new THREE.Color('#1c130d');
 const sunMonthSelect=$('sun-month'),sunDaySelect=$('sun-day'),sunHourSelect=$('sun-hour');
 
 function daysInSolarMonth(month){return new Date(Date.UTC(SUN_YEAR,month,0)).getUTCDate();}
@@ -242,20 +242,22 @@ const fixtureDecor=new THREE.Group();fixtureDecor.name='Reception fixtures';fixt
 const labels=new THREE.Group();scene.add(labels);
 const roof=new THREE.Group();scene.add(roof);
 const ALL_SOLIDS=[];
-const solidMat=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.94,metalness:0});
-const edgeMat=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1});
+const solidMat=new THREE.MeshStandardMaterial({color:'#f9f1e5',roughness:.94,metalness:0});
+const edgeMat=new THREE.MeshStandardMaterial({color:'#f9f1e5',roughness:1});
 const doorMat=new THREE.MeshStandardMaterial({color:'#caa980',roughness:.82});
-const frameMat=new THREE.MeshStandardMaterial({color:'#dfded6',roughness:.44,metalness:.12});
-const glassMat=new THREE.MeshPhysicalMaterial({color:'#b1dce8',transparent:true,opacity:.20,metalness:0,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
+const frameMat=new THREE.MeshStandardMaterial({color:'#efe4d5',roughness:.44,metalness:.12});
+const glassMat=new THREE.MeshPhysicalMaterial({color:'#fff0df',transparent:true,opacity:.20,metalness:0,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
 const darkBase=new THREE.MeshStandardMaterial({color:'#b9a78c',roughness:1});
 // v0.22 decorative materials only: preserve all v0.19 floor, wall, ceiling and glazing materials.
-const baseboardMat=new THREE.MeshStandardMaterial({color:'#f5f3ec',roughness:.72});
-const baseboardCapMat=new THREE.MeshStandardMaterial({color:'#e7e2d9',roughness:.78});
-const radiatorMat=new THREE.MeshStandardMaterial({color:'#f6f4ef',roughness:.59});
-const radiatorValveMat=new THREE.MeshStandardMaterial({color:'#a5a29a',metalness:.37,roughness:.47});
-const socketPlateMat=new THREE.MeshStandardMaterial({color:'#c6c0b7',metalness:.36,roughness:.40});
-const socketFaceMat=new THREE.MeshStandardMaterial({color:'#edeae4',roughness:.62});
-const socketHoleMat=new THREE.MeshStandardMaterial({color:'#615e5a',roughness:.75});
+const baseboardMat=new THREE.MeshStandardMaterial({color:'#f4eadd',roughness:.72});
+const baseboardCapMat=new THREE.MeshStandardMaterial({color:'#e8dccb',roughness:.78});
+const radiatorMat=new THREE.MeshStandardMaterial({color:'#f6f0e6',roughness:.59});
+const radiatorValveMat=new THREE.MeshStandardMaterial({color:'#a99c8b',metalness:.37,roughness:.47});
+const socketPlateMat=new THREE.MeshStandardMaterial({color:'#b1a69a',metalness:.36,roughness:.40});
+const socketFaceMat=new THREE.MeshStandardMaterial({color:'#f6f0e6',roughness:.62});
+const socketHoleMat=new THREE.MeshStandardMaterial({color:'#534a3e',roughness:.75});
+const switchPlateMat=new THREE.MeshStandardMaterial({color:'#f5eee3',roughness:.69,metalness:0});
+const switchRockerMat=new THREE.MeshStandardMaterial({color:'#e4dcd0',roughness:.66,metalness:0});
 
 function seeded(i){let v=Math.sin(i*127.1+421.6)*43758.5453;return v-Math.floor(v);}
 function canvasTex(kind){
@@ -274,8 +276,8 @@ function canvasTex(kind){
   ctx.fillStyle='#e9dfcc';ctx.fillRect(0,0,512,512);
   for(let j=0;j<9000;j++){const v=Math.floor(180+seeded(j)*65);ctx.fillStyle=`rgba(${v},${v-7},${v-19},${.025+seeded(j+40)*.16})`;ctx.fillRect(seeded(j*2+13)*512,seeded(j*3+20)*512,1,1);}
  }else{
-  ctx.fillStyle=kind==='tile'?'#969999':'#c2cacc';ctx.fillRect(0,0,512,512);
-  for(let j=0;j<5200;j++){let v=seeded(j*2);ctx.fillStyle=`rgba(${v>.5?255:34},${v>.5?255:39},${v>.5?255:44},${.012+seeded(j+19)*.075})`;ctx.fillRect(seeded(j*5)*512,seeded(j*6+11)*512,1+seeded(j+35)*3,1+seeded(j+7)*3);}
+  ctx.fillStyle=kind==='tile'?'#a8a19a':'#c8bfb2';ctx.fillRect(0,0,512,512);
+  for(let j=0;j<5200;j++){let v=seeded(j*2);ctx.fillStyle=`rgba(${v>.5?255:53},${v>.5?255:48},${v>.5?255:42},${.012+seeded(j+19)*.075})`;ctx.fillRect(seeded(j*5)*512,seeded(j*6+11)*512,1+seeded(j+35)*3,1+seeded(j+7)*3);}
  }
  const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.40,.40);tx.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);return tx;
 }
@@ -298,8 +300,8 @@ for(const room of PLAN.rooms){
 function labelForRoom(room){
  const c=document.createElement('canvas');c.width=512;c.height=164;const x=c.getContext('2d');
  x.fillStyle='rgba(252,251,246,.82)';x.beginPath();x.roundRect(3,3,506,158,22);x.fill();
- x.fillStyle='#1f2930';x.font='bold 35px Arial';x.textAlign='center';x.fillText(room.name,256,70);
- x.fillStyle='#53656e';x.font='25px Arial';x.fillText(room.subtitle,256,115);
+ x.fillStyle='#292018';x.font='bold 35px Arial';x.textAlign='center';x.fillText(room.name,256,70);
+ x.fillStyle='#76624e';x.font='25px Arial';x.fillText(room.subtitle,256,115);
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
  const plate=new THREE.Mesh(new THREE.PlaneGeometry(room.id==='hall'?1.8:2.6,room.id==='hall'?.57:.83),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false}));
  const p=m(room.label);plate.position.set(p.x,.025,p.y);plate.rotation.x=-Math.PI/2;labels.add(plate);
@@ -401,7 +403,7 @@ function windowPane(spec){
   beam(spec.a,spec.b,0.065,0.07,0.095);
  }
  // Small discreet door handles at eye / waist level, not a speculative detailed door style.
- const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#b3b5b4',metalness:.75,roughness:.3}));
+ const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#bdb3a6',metalness:.75,roughness:.3}));
  handle.position.set(mid.x,1.02,mid.y);handle.castShadow=true;architectural.add(handle);
 }
 PLAN.glazing.forEach(windowPane);
@@ -449,24 +451,31 @@ if(heater){
   decorativeBlock(group,radiatorValveMat,.037,.034,.043,x,heater.bottomM+.018,front+.005);
  }
 }
-// Switch/socket plates on the SHORT HORIZONTAL WALL y=568 immediately above the kitchen,
-// shown as red dots next to the radiator on the supplied floor-plan annotation.
+// Reference photo: TWO pale cream single switch plates to the LEFT of ONE
+// brushed-metal UK double socket on the RIGHT, grouped ~1.08 m above floor.
+// Same wall and decorative mounting logic; radiator remains exactly where it was.
 for(const plate of PLAN.fixtures?.receptionPlates||[]){
  const group=wallFacingFixture(plate,plate.alongM);
  const z=PLAN.wallInner/2+.012;
- const switchBank=plate.type==='switchBank';
- const width=switchBank?.136:.154,height=switchBank?.092:.086;
- decorativeBlock(group,socketPlateMat,width,height,.011,0,plate.heightM,z);
- decorativeBlock(group,socketFaceMat,width-.015,height-.015,.004,0,plate.heightM,z+.009);
- if(switchBank){
-  for(const x of [-.033,.033])
-   decorativeBlock(group,socketPlateMat,.023,.036,.008,x,plate.heightM,z+.018);
- }else{
-  for(const x of [-.037,.037]){
-   decorativeBlock(group,socketHoleMat,.009,.013,.002,x,plate.heightM+.012,z+.013);
-   decorativeBlock(group,socketHoleMat,.007,.011,.002,x-.015,plate.heightM-.011,z+.013);
-   decorativeBlock(group,socketHoleMat,.007,.011,.002,x+.015,plate.heightM-.011,z+.013);
+ if(plate.type==='singleSwitch'){
+  const width=.091,height=.091;
+  decorativeBlock(group,switchPlateMat,width,height,.011,0,plate.heightM,z);
+  decorativeBlock(group,socketFaceMat,width-.011,height-.013,.004,0,plate.heightM,z+.008);
+  decorativeBlock(group,switchRockerMat,.023,.034,.006,0,plate.heightM,z+.014);
+  for(const dx of [-.033,.033])
+   decorativeBlock(group,socketHoleMat,.0025,.0025,.0015,dx,plate.heightM,z+.012);
+ }else if(plate.type==='doubleSocket'){
+  const width=.153,height=.091;
+  decorativeBlock(group,socketPlateMat,width,height,.013,0,plate.heightM,z);
+  decorativeBlock(group,socketFaceMat,width-.016,height-.015,.004,0,plate.heightM,z+.010);
+  for(const dx of [-.038,.038]){
+   decorativeBlock(group,socketHoleMat,.009,.014,.002,dx,plate.heightM+.015,z+.014);
+   decorativeBlock(group,socketHoleMat,.008,.013,.002,dx-.018,plate.heightM-.010,z+.014);
+   decorativeBlock(group,socketHoleMat,.008,.013,.002,dx+.018,plate.heightM-.010,z+.014);
+   decorativeBlock(group,switchRockerMat,.013,.013,.004,dx+.024,plate.heightM+.021,z+.015);
   }
+ }else{
+  throw new Error('Unknown electrical fitting type: '+plate.type);
  }
 }
 function doorPanel(s){
@@ -492,7 +501,7 @@ function doorPanel(s){
  }
 }
 PLAN.doors.forEach(doorPanel);
-const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#ffffff',side:THREE.DoubleSide,roughness:1}));
+const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#fbf3e6',side:THREE.DoubleSide,roughness:1}));
 ceiling.position.y=H;
 // CRITICAL: the ceiling must CAST shadows, not just receive them. Without this,
 // afternoon sunlight enters from above and reaches the bedroom despite opaque
@@ -510,10 +519,10 @@ function setCeilingVisibleInCamera(show){
 }
 // Minimal vertical cutaway outline helper in overhead view. Not furniture or exterior scenery.
 const spawn=m(PLAN.spawn);
-const marker=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.012,24),new THREE.MeshBasicMaterial({color:'#168d85'}));
+const marker=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.012,24),new THREE.MeshBasicMaterial({color:'#b78550'}));
 marker.position.set(spawn.x,.038,spawn.y);labels.add(marker);
 rig.position.set(spawn.x,0,spawn.y);camera.position.set(0,TARGET_EYE_HEIGHT_M,0);
-const handColors=[0x75d1bf,0xe6b685];
+const handColors=[0xe0c09a,0xe6b685];
 for(let i=0;i<2;i++){
  const controller=renderer.xr.getController(i);rig.add(controller);
  const pointer=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.65,7),new THREE.MeshBasicMaterial({color:handColors[i],transparent:true,opacity:.55}));
@@ -699,7 +708,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.25 ready · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.26 ready · Warm-white colours and photographed fixtures · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
