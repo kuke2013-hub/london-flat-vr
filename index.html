@@ -408,8 +408,8 @@ function windowPane(spec){
   // Slim frame around the moving glazed door panel, without blocking daylight.
   const d0=divisions[spec.doorSection],d1=divisions[spec.doorSection+1];
   for(const t of [d0+.013,d1-.013]){
-   const point=p(t),bar=new THREE.Mesh(new THREE.BoxGeometry(.028,H-.22,.034),frameMat);
-   bar.position.set(point[0]+.017,(H-.22)/2+.17,point[1]);
+   const point=m(p(t)),bar=new THREE.Mesh(new THREE.BoxGeometry(.028,H-.22,.034),frameMat);
+   bar.position.set(point.x+.017,(H-.22)/2+.17,point.y);
    bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
   }
   // The original door threshold and transparent glass remain.
