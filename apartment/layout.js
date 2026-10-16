@@ -95,8 +95,8 @@ export const PLAN = {
       centerAlongM:0.65, widthM:0.81, heightM:0.65, bottomM:0.19
     },
     receptionPlates: [
-      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.21,heightM:0.92,type:'switchBank'},
-      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.49,heightM:0.92,type:'doubleSocket'}
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.21,heightM:0.18,type:'switchBank'},
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.49,heightM:0.18,type:'doubleSocket'}
     ]
   },
   doors: [
