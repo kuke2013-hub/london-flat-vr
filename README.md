@@ -50,3 +50,5 @@ The supplied Clephane Road estate-agent plan states **52.58 m² gross internal a
 As of shell **v0.6**, the user has tested and confirmed that both Quest 3 joysticks work correctly. **Do not regress this:** the left joystick moves relative to the combined real headset orientation and right-stick snap-turn yaw, updating immediately after each 30° snap turn; its axes are standard (forward/up moves forward, back moves backward, left/right strafe). The right joystick performs 30° snap turns around the tracked head position. Do not replace the current v0.6 locomotion implementation with older movement handlers when modifying geometry, lighting or controls.
 
 **Confirmed ceiling height:** 2.30 metres measured from finished floor to ceiling. Architectural heights should be generated from `PLAN.ceilingHeight` rather than hardcoded 2.50 m.
+
+**Confirmed VR viewer preference:** simulate a person **1.88 m tall**, using a provisional **1.77 m eye height** (11 cm below total height), applied as an offset to Quest headset tracked eye height. This replaced 1.85 m / 1.74 m in shell v0.8. Preserve the confirmed v0.6 joystick locomotion behaviour.
