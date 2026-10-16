@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.21</title>
+<title>London Flat VR · Architectural Shell v0.22</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#d8d1c6}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
 canvas{display:block}#stage{position:fixed;inset:0}#ui{position:fixed;top:14px;left:14px;width:min(360px,calc(100vw - 28px));background:rgba(21,30,35,.88);color:#f2f3f1;border:1px solid #ffffff30;border-radius:13px;padding:14px 16px;z-index:5;backdrop-filter:blur(10px);box-shadow:0 10px 28px #0003}
 h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{font-size:11px;line-height:1.45;color:#ccd6d9;margin-bottom:9px}#controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}button,select{background:#34434b;border:1px solid #ffffff35;border-radius:8px;padding:8px 9px;color:#fafafa;font-size:12px;cursor:pointer}button.active{background:#476d67;border-color:#9cdbd1}button:hover{background:#4e6572}#vr-slot button{background:#7dd9c1!important;color:#0b2221!important;border:0!important;font-weight:700!important}#status{font-size:11px;margin-top:9px;color:#a9c8d1;line-height:1.5}#data{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff25;color:#d6dedc;font-size:11px;line-height:1.5}#data strong{font-weight:650;color:#fff}#footer{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px);z-index:3;padding:8px 12px;border-radius:8px;background:#131a1cce;color:#f6f6f6;text-align:center;font-size:11px;line-height:1.4;pointer-events:none}#footnotes{position:fixed;top:15px;right:15px;z-index:3;background:#101a20b8;color:#eef5f5;border-radius:9px;padding:9px 11px;font:11px/1.6 ui-monospace,SFMono-Regular,monospace}#footnotes span{color:#8ed5bd}@media(max-width:650px){#ui{padding:10px 11px;width:calc(100vw - 20px);top:10px;left:10px}#footnotes{top:auto;right:10px;bottom:65px}#footer{bottom:7px}}
 </style>
@@ -16,11 +16,11 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.21</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.22</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative left-stick movement · no furniture or outside scenery yet.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><select id="sun-time" aria-label="June sunlight time" title="June 21 afternoon lighting (BST)"><option value="15">June 3 pm</option><option value="16" selected>June 4 pm</option><option value="17">June 5 pm</option></select><span id="vr-slot"></span></div>
  <div id="status">Preparing Three.js and Rapier…</div>
- <div id="data"><strong>Finishes:</strong> warm-white walls / honey-blond timber / cream bedroom carpet / grey kitchen tiles / light brown doors. <strong>References:</strong> radiator, skirting, UK sockets and four-section living-room glazing.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1538 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+ <div id="data"><strong>Finishes:</strong> v0.19 pale wood / cream bedroom carpet / grey kitchen floor / white walls. <strong>New:</strong> white skirting, radiator and electric plates LEFT of the main window beside the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1538 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
 <div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
@@ -38,13 +38,9 @@ const m = p => new THREE.Vector2((p[0] - PLAN.centre[0])*scale, (p[1] - PLAN.cen
 const H = PLAN.ceilingHeight;
 const DOOR_H = PLAN.doorHeight; // 1.931 m doors; 10 cm shorter than v0.18, independent of ceiling.
 if(DOOR_H<=0||H<=0)throw new Error('Door and ceiling heights must be positive.');
-const DOOR_CEILING_OVERLAP = Math.max(0,DOOR_H-H); // Doors end 169 mm below the 2.10 m ceiling.
-// Seal the entire wall/roof junction without changing the finished ceiling height.
-// The ceiling extends just beyond the OUTER wall faces, and solid walls overlap it by 20 mm.
-const ROOF_EDGE_SEAL_M = PLAN.wallOuter/2 + 0.020;
-const WALL_TOP_SEAL_M = 0.020;
+const DOOR_CEILING_OVERLAP = Math.max(0,DOOR_H-H); // Zero in v0.19; door leaves end 169 mm below ceiling.
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#ded8cf'); // Warm-neutral background, with no blue sky tint.
+scene.background = new THREE.Color('#d8d8d6'); // Neutral backdrop instead of blue-grey behind glazing.
 const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', alpha:false });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -59,13 +55,13 @@ renderer.xr.setFramebufferScaleFactor(1);
 $('stage').appendChild(renderer.domElement);
 // Keep diffuse daylight subordinate to the sun so the frame shadows remain visible.
 // Neutral diffuse lighting: the former blue-tinted hemisphere made pure-white walls appear cyan.
-const skyLight = new THREE.HemisphereLight(0xfffaf2,0xe5dcd0,0.95);scene.add(skyLight); // Warm-neutral indirect daylight.
-const ambientFill = new THREE.AmbientLight(0xfffaf1,0.16);scene.add(ambientFill);
+const skyLight = new THREE.HemisphereLight(0xffffff,0xe4e2de,0.95);scene.add(skyLight);
+const ambientFill = new THREE.AmbientLight(0xffffff,0.16);scene.add(ambientFill);
 const sunlight = new THREE.DirectionalLight(0xffedca,3.2);
 sunlight.castShadow = true;
 sunlight.shadow.mapSize.set(2048,2048); // Reduced to 1024 during a Quest session.
 sunlight.shadow.bias = -0.00012;
-sunlight.shadow.normalBias = 0.006; // Tighter directional-light contact at roof/wall seams; retain a small acne guard.
+sunlight.shadow.normalBias = 0.012;
 sunlight.shadow.camera.near = 1;
 sunlight.shadow.camera.far = 42;
 sunlight.shadow.camera.left = -8.5;
@@ -127,93 +123,53 @@ const architectural=new THREE.Group();scene.add(architectural);
 const labels=new THREE.Group();scene.add(labels);
 const roof=new THREE.Group();scene.add(roof);
 const ALL_SOLIDS=[];
-const solidMat=new THREE.MeshStandardMaterial({color:'#fff9f0',roughness:.94,metalness:0});
-const edgeMat=new THREE.MeshStandardMaterial({color:'#fff9f0',roughness:1});
+const solidMat=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.94,metalness:0});
+const edgeMat=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1});
 const doorMat=new THREE.MeshStandardMaterial({color:'#caa980',roughness:.82});
-const frameMat=new THREE.MeshStandardMaterial({color:'#f2eee5',roughness:.56,metalness:0});
-const glassMat=new THREE.MeshPhysicalMaterial({color:'#fffbf5',transparent:true,opacity:.12,metalness:0,roughness:.12,depthWrite:false,side:THREE.DoubleSide});
+const frameMat=new THREE.MeshStandardMaterial({color:'#dfded6',roughness:.44,metalness:.12});
+const glassMat=new THREE.MeshPhysicalMaterial({color:'#b1dce8',transparent:true,opacity:.20,metalness:0,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
 const darkBase=new THREE.MeshStandardMaterial({color:'#b9a78c',roughness:1});
-const skirtingMat=new THREE.MeshStandardMaterial({color:'#f4efe6',roughness:.72});
-const skirtingCapMat=new THREE.MeshStandardMaterial({color:'#e5ddd1',roughness:.76});
-const radiatorMat=new THREE.MeshStandardMaterial({color:'#faf7f0',roughness:.56,metalness:.02});
-const plateMat=new THREE.MeshStandardMaterial({color:'#bcb7ae',metalness:.48,roughness:.42});
-const insetMat=new THREE.MeshStandardMaterial({color:'#69635e',metalness:.10,roughness:.62});
-const thresholdMat=new THREE.MeshStandardMaterial({color:'#bfa37e',roughness:.63});
+// v0.22 decorative materials only: preserve all v0.19 floor, wall, ceiling and glazing materials.
+const baseboardMat=new THREE.MeshStandardMaterial({color:'#f5f3ec',roughness:.72});
+const baseboardCapMat=new THREE.MeshStandardMaterial({color:'#e7e2d9',roughness:.78});
+const radiatorMat=new THREE.MeshStandardMaterial({color:'#f6f4ef',roughness:.59});
+const radiatorValveMat=new THREE.MeshStandardMaterial({color:'#a5a29a',metalness:.37,roughness:.47});
+const socketPlateMat=new THREE.MeshStandardMaterial({color:'#c6c0b7',metalness:.36,roughness:.40});
+const socketFaceMat=new THREE.MeshStandardMaterial({color:'#edeae4',roughness:.62});
+const socketHoleMat=new THREE.MeshStandardMaterial({color:'#615e5a',roughness:.75});
 
 function seeded(i){let v=Math.sin(i*127.1+421.6)*43758.5453;return v-Math.floor(v);}
 function canvasTex(kind){
  const c=document.createElement('canvas');c.width=512;c.height=512;const ctx=c.getContext('2d');
  if(kind==='wood'){
-  // Light honey/maple boards, faint grain and staggered short end joints, based on the supplied floor photo.
-  ctx.fillStyle='#e6c895';ctx.fillRect(0,0,512,512);
-  const shades=['#eacb97','#e4c28b','#efd2a4','#e8c997','#e6c492','#eccd9c','#e2bf89'];
+  ctx.fillStyle='#dfc99a';ctx.fillRect(0,0,512,512);
   for(let j=0;j<7;j++){
-   const y=j*73;ctx.fillStyle=shades[j];ctx.fillRect(0,y,512,72);
-   ctx.fillStyle='rgba(112,78,43,.24)';ctx.fillRect(0,y,512,1);
-   for(let k=-1;k<5;k++){
-    const x=k*174+((j*67)%174);
-    ctx.fillStyle='rgba(112,78,43,.27)';ctx.fillRect(x,y+1,1,71);
-   }
-   for(let k=0;k<22;k++){
-    const yy=y+2+seeded(j*47+k)*68;
-    ctx.strokeStyle=`rgba(112,78,43,${.012+seeded(j*63+k)*.060})`;
-    ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(512,yy+seeded(j*33+k)*2);ctx.stroke();
+   const y=j*78;ctx.fillStyle=(j%2?'#e4d0a8':'#d8c18f');ctx.fillRect(0,y,512,77);
+   ctx.fillStyle='#af946b';ctx.globalAlpha=.25;ctx.fillRect(0,y,512,1);ctx.globalAlpha=1;
+   for(let k=0;k<24;k++){
+    ctx.strokeStyle=`rgba(119,85,43,${.014+seeded(j*71+k)*.09})`;
+    ctx.beginPath();ctx.moveTo(0,y+seeded(k+j*14)*76);ctx.lineTo(512,y+seeded(k+j*14)*76+seeded(k+99)*3);ctx.stroke();
    }
   }
  }else if(kind==='carpet'){
   ctx.fillStyle='#e9dfcc';ctx.fillRect(0,0,512,512);
   for(let j=0;j<9000;j++){const v=Math.floor(180+seeded(j)*65);ctx.fillStyle=`rgba(${v},${v-7},${v-19},${.025+seeded(j+40)*.16})`;ctx.fillRect(seeded(j*2+13)*512,seeded(j*3+20)*512,1,1);}
- }else if(kind==='tile'){
-  // Grey stone-look kitchen floor, larger tiles separated by narrow, subtle grout.
-  ctx.fillStyle='#aaa7a2';ctx.fillRect(0,0,512,512);
-  for(let row=0;row<4;row++)for(let col=0;col<4;col++){
-   const v=Math.round(169+(seeded(row*11+col)-.5)*12);
-   ctx.fillStyle=`rgb(${v},${v-2},${v-4})`;
-   ctx.fillRect(col*128+2,row*128+2,125,125);
-  }
-  ctx.strokeStyle='rgba(90,85,80,.22)';ctx.lineWidth=2;
-  for(let p=0;p<=512;p+=128){
-   ctx.beginPath();ctx.moveTo(p,0);ctx.lineTo(p,512);ctx.moveTo(0,p);ctx.lineTo(512,p);ctx.stroke();
-  }
  }else{
-  ctx.fillStyle='#c6beb2';ctx.fillRect(0,0,512,512);
-  for(let j=0;j<2500;j++){
-   const v=seeded(j*2);ctx.fillStyle=`rgba(85,79,74,${v*.035})`;
-   ctx.fillRect(seeded(j*5)*512,seeded(j*6+11)*512,1,1);
-  }
+  ctx.fillStyle=kind==='tile'?'#969999':'#c2cacc';ctx.fillRect(0,0,512,512);
+  for(let j=0;j<5200;j++){let v=seeded(j*2);ctx.fillStyle=`rgba(${v>.5?255:34},${v>.5?255:39},${v>.5?255:44},${.012+seeded(j+19)*.075})`;ctx.fillRect(seeded(j*5)*512,seeded(j*6+11)*512,1+seeded(j+35)*3,1+seeded(j+7)*3);}
  }
- const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;tx.wrapS=tx.wrapT=THREE.RepeatWrapping;
- tx.repeat.set(kind==='wood'?.55:kind==='tile'?.70:.40,kind==='wood'?1.25:kind==='tile'?.70:.40);
- tx.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);return tx;
+ const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.40,.40);tx.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);return tx;
 }
 const floorMats={
- wood:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('wood'),roughness:.55,metalness:0}),
+ wood:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('wood'),roughness:.78}),
  carpet:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('carpet'),roughness:1}),
- tile:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('tile'),roughness:.86}),
+ tile:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('tile'),roughness:.93}),
  bath:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('bath'),roughness:.93})
 };
 function floorGeometry(points){
  // ShapeGeometry uses XY coordinates. Reversing Z and rotating -90° maps it to the XZ ground plane with upward normals.
  const s=new THREE.Shape();points.forEach((p,i)=>{const v=m(p);if(!i)s.moveTo(v.x,-v.y);else s.lineTo(v.x,-v.y);});s.closePath();
  const geo=new THREE.ShapeGeometry(s);geo.rotateX(-Math.PI/2);return geo;
-}
-// Expand only the ceiling perimeter beyond the OUTSIDE of its thick walls.
-// Mitered offsets also seal tapered/concave corners. Floor polygons and wall positions stay unchanged.
-function sealedCeilingOutline(points,marginMetres){
- const pad=marginMetres*PLAN.pxPerMetre,n=points.length;
- const signedArea=points.reduce((sum,p,i)=>{const q=points[(i+1)%n];return sum+p[0]*q[1]-q[0]*p[1];},0);
- const sign=signedArea>=0?1:-1;
- return points.map((p,i)=>{
-  const before=points[(i+n-1)%n],after=points[(i+1)%n];
-  const pa=[p[0]-before[0],p[1]-before[1]],pb=[after[0]-p[0],after[1]-p[1]];
-  const la=Math.hypot(pa[0],pa[1]),lb=Math.hypot(pb[0],pb[1]);
-  if(la<1e-6||lb<1e-6)throw new Error('Ceiling outline contains a zero-length edge');
-  const a=[sign*pa[1]/la,-sign*pa[0]/la],b=[sign*pb[1]/lb,-sign*pb[0]/lb];
-  const bisector=[a[0]+b[0],a[1]+b[1]];
-  const denom=bisector[0]*b[0]+bisector[1]*b[1];
-  if(denom<.1)throw new Error('Ceiling outline corner cannot be safely sealed');
-  return [p[0]+pad*bisector[0]/denom,p[1]+pad*bisector[1]/denom];
- });
 }
 const base=new THREE.Mesh(floorGeometry(PLAN.outline),darkBase);base.position.y=-.015;base.receiveShadow=true;architectural.add(base);
 for(const room of PLAN.rooms){
@@ -256,146 +212,125 @@ function rectangularWall(a,b,height,thick,material,yCenter=height/2,withCollider
  }
  return mesh;
 }
-// Full-height opaque wall tops intentionally enter the roof plane by 20 mm; no razor-edge light seams.
-for(const w of PLAN.walls) rectangularWall(w.a,w.b,H+WALL_TOP_SEAL_M,w.kind==='outer'?PLAN.wallOuter:PLAN.wallInner,w.kind==='outer'?solidMat:edgeMat,(H+WALL_TOP_SEAL_M)/2);
-// Photo reference: painted 11 cm skirting/baseboards run along solid walls and stop at door openings.
-function addSkirting(a,b,thick){
- const v=m(a),w=m(b),delta=w.clone().sub(v),len=delta.length();if(len<.015)return;
+for(const w of PLAN.walls) rectangularWall(w.a,w.b,H,w.kind==='outer'?PLAN.wallOuter:PLAN.wallInner,w.kind==='outer'?solidMat:edgeMat);
+// Painted skirting on all solid walls, following exactly the original v0.19 wall segments.
+// Doors and windows remain clear because those spans are not members of PLAN.walls.
+function addSkirting(segment){
+ const a=m(segment.a),b=m(segment.b),d=b.clone().sub(a),len=d.length();
+ if(len<.025)return;
+ const thick=segment.kind==='outer'?PLAN.wallOuter:PLAN.wallInner;
  const group=new THREE.Group();
- group.position.set((v.x+w.x)/2,0,(v.y+w.y)/2);
- group.rotation.y=-Math.atan2(delta.y,delta.x);
+ group.position.set((a.x+b.x)/2,0,(a.y+b.y)/2);
+ group.rotation.y=-Math.atan2(d.y,d.x);
+ const height=PLAN.fixtures?.skirtingHeightM||.11;
  for(const part of [
-  {height:.108,depth:thick+.030,y:.054,material:skirtingMat},
-  {height:.013,depth:thick+.042,y:.112,material:skirtingCapMat}
+  {h:height-.010,depth:thick+.025,y:(height-.010)/2,mat:baseboardMat},
+  {h:.012,depth:thick+.037,y:height-.006,mat:baseboardCapMat}
  ]){
-  const strip=new THREE.Mesh(new THREE.BoxGeometry(len,part.height,part.depth),part.material);
+  const strip=new THREE.Mesh(new THREE.BoxGeometry(len,part.h,part.depth),part.mat);
   strip.position.y=part.y;strip.castShadow=true;strip.receiveShadow=true;group.add(strip);
  }
  architectural.add(group);
 }
-for(const w of PLAN.walls)addSkirting(w.a,w.b,w.kind==='outer'?PLAN.wallOuter:PLAN.wallInner);
-// Thin warm timber transition where the reception wood meets the grey kitchen tile.
-const kitchenTransition=PLAN.fixtures?.kitchenThreshold;
-if(kitchenTransition){
- const a=m(kitchenTransition.a),b=m(kitchenTransition.b),v=b.clone().sub(a);
- const strip=new THREE.Mesh(new THREE.BoxGeometry(v.length(),.012,.046),thresholdMat);
- strip.position.set((a.x+b.x)/2,.013,(a.y+b.y)/2);
- strip.rotation.y=-Math.atan2(v.y,v.x);strip.receiveShadow=true;architectural.add(strip);
-}
+for(const segment of PLAN.walls)addSkirting(segment);
 function beam(a,b,y,height,thick=.044){rectangularWall(a,b,height,thick,frameMat,y+height/2,false);}
 function windowPane(spec){
- const a=m(spec.a),b=m(spec.b),len=a.distanceTo(b),mid=a.clone().add(b).multiplyScalar(.5);
+ const a=m(spec.a),b=m(spec.b);const len=a.distanceTo(b);const mid=a.clone().add(b).multiplyScalar(.5);
  const rot=-Math.atan2(b.y-a.y,b.x-a.x);
- // Keep the original collision boundary while the external balconies remain unbuilt.
+ const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
+ glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;
+ // Transparent glass lets sunlight pass. Only opaque mullions, sills, headers,
+ // doors and walls cast directional-light shadows.
+ glass.castShadow=false;glass.receiveShadow=false;architectural.add(glass);
+ // Clear glazing still collides: outside balconies are deliberately not built yet.
  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
  world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,H/2,.028).setTranslation(mid.x,H/2,mid.y).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}),staticBody);
  collisionSegment(spec.a,spec.b,.056);
- if(spec.name==='Reception balcony glazing'){
-  // The photos show four vertical glazed modules: one balcony door plus fixed side panels.
-  // Their widths are visually estimated, not measured, and the fourth lies outside the photo.
-  const assembly=new THREE.Group();assembly.position.set(mid.x,0,mid.y);assembly.rotation.y=rot;
-  architectural.add(assembly);
-  const divisions=[0,...spec.mullions,1];
-  const lower=spec.lowerPanelM||.24;
-  function part(w,h,d,x,y,z=0,material=frameMat,shadow=true){
-   const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-   mesh.position.set(x,y,z);mesh.castShadow=shadow;mesh.receiveShadow=shadow;assembly.add(mesh);
-   return mesh;
-  }
-  for(let j=0;j<divisions.length-1;j++){
-   const left=-len/2+divisions[j]*len,right=-len/2+divisions[j+1]*len;
-   const center=(left+right)/2,w=right-left;
-   const glassBottom=lower+.025,glassTop=H-.15;
-   const glass=new THREE.Mesh(new THREE.BoxGeometry(Math.max(.05,w-.072),glassTop-glassBottom,.012),glassMat);
-   glass.position.set(center,(glassBottom+glassTop)/2,0);
-   glass.castShadow=false;glass.receiveShadow=false;assembly.add(glass);
-   // White opaque lower kick panel and horizontal frame, as in the balcony photo.
-   part(w-.065,lower-.035,.039,center,(lower-.035)/2+.025,.004);
-   part(w-.047,.045,.058,center,lower+.007,.006);
-   if(j===spec.doorSection){
-    // Slimmer inset framing for the opening door, with visible metallic handle.
-    part(.032,H-.18,.067,left+.048,(H-.18)/2+.045,.028);
-    part(.032,H-.18,.067,right-.048,(H-.18)/2+.045,.028);
-    part(w-.085,.035,.070,center,H-.135,.028);
-    const metal=new THREE.MeshStandardMaterial({color:'#b8b4aa',metalness:.72,roughness:.35});
-    part(.024,.125,.052,right-.117,1.03,.080,metal);
-    part(.085,.018,.050,right-.153,1.025,.107,metal);
-   }
-  }
-  for(const t of divisions)part(.059,H,.085,-len/2+t*len,H/2);
-  part(len,.080,.090,0,.041);             // Continuous bottom track
-  part(len,.078,.088,0,H-.046);           // Top rail meets sealed ceiling
-  part(len,.028,.068,0,H-.173,.012);      // Narrow upper sash line
-  // Discreet white curtain track on the room side of the wall.
-  part(len-.18,.017,.023,0,H-.215,.120,plateMat);
-  for(const t of [.10,.42,.70,.90])part(.023,.046,.039,-len/2+t*len,H-.194,.114);
-  return;
- }
- // Other glazing is unchanged in size and collision, with colour-neutral glass.
- const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
- glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;
- glass.castShadow=false;glass.receiveShadow=false;architectural.add(glass);
+ // Vertical metal mullions and a restrained floor-to-ceiling frame.
  for(const t of [0,...spec.mullions,1]){
   const x=a.x+(b.x-a.x)*t,z=a.y+(b.y-a.y)*t;
   const bar=new THREE.Mesh(new THREE.BoxGeometry(.044,H,.044),frameMat);
   bar.position.set(x,H/2,z);bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
  }
  for(const y of [.025,H-.025])beam(spec.a,spec.b,y-.025,.05);
- const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),plateMat);
+ // Full-height glazing can still have narrow window thresholds / low frames.
+ // The fixed glass panels flanking the reception balcony door get a narrow
+ // horizontal frame, casting recognizable sun bands across the wood floor.
+ if(spec.name==='Reception balcony glazing'){
+  const p=(t)=>[spec.a[0]+(spec.b[0]-spec.a[0])*t,spec.a[1]+(spec.b[1]-spec.a[1])*t];
+  for(const [t0,t1] of [[0,0.50],[0.74,1]]){
+   beam(p(t0),p(t1),0.88,0.055,0.07);
+  }
+  // A slightly raised balcony door threshold; still nearly floor-to-ceiling glazing.
+  beam(spec.a,spec.b,0.065,0.07,0.095);
+ }
+ // Small discreet door handles at eye / waist level, not a speculative detailed door style.
+ const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#b3b5b4',metalness:.75,roughness:.3}));
  handle.position.set(mid.x,1.02,mid.y);handle.castShadow=true;architectural.add(handle);
 }
 PLAN.glazing.forEach(windowPane);
-// Photo-based lightweight fixtures; positions are provisional until front-on measurements arrive.
-// Fixture-local +Z points towards the living room from the long angled wall beside the window.
-function fixtureMount(a,b,alongM){
- const av=m(a),bv=m(b),d=bv.clone().sub(av),len=d.length();
- const mount=new THREE.Group();const t=THREE.MathUtils.clamp(alongM/len,0,1);
- mount.position.set(av.x+d.x*t,0,av.y+d.y*t);
- mount.rotation.y=-Math.atan2(d.y,d.x);
- architectural.add(mount);return mount;
+// v0.22: annotated photo-floorplan fixtures only; no walls or window framing altered.
+// Both mounting surfaces face the living-room interior, selected by interiorPoint.
+function wallFacingFixture(spec,metresFromA){
+ const a=m(spec.wallA),b=m(spec.wallB),v=b.clone().sub(a);
+ const len=v.length();
+ if(metresFromA<0||metresFromA>len)throw new Error('Fixture anchor lies outside the selected wall');
+ const group=new THREE.Group();
+ group.position.set(a.x+v.x*metresFromA/len,0,a.y+v.y*metresFromA/len);
+ let angle=-Math.atan2(v.y,v.x);
+ const centre=a.clone().add(b).multiplyScalar(.5);
+ const inward=m(spec.interiorPoint).sub(centre);
+ if(Math.sin(angle)*inward.x+Math.cos(angle)*inward.y<0)angle+=Math.PI;
+ group.rotation.y=angle;
+ architectural.add(group);
+ return group;
 }
-function fixtureBox(parent,material,w,h,d,x,y,z,shadow=true){
+function decorativeBlock(parent,material,w,h,d,x,y,z){
  const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
- mesh.position.set(x,y,z);mesh.castShadow=shadow;mesh.receiveShadow=shadow;parent.add(mesh);
- return mesh;
+ mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;
+ parent.add(mesh);return mesh;
 }
-const rad=PLAN.fixtures.receptionRadiator;
-if(rad){
- const mount=fixtureMount(rad.wallA,rad.wallB,rad.startM+rad.widthM/2);
- const front=PLAN.wallOuter/2+.072;
- // White wall radiator: eight evenly spaced flat horizontal bands, side rails and exposed supply pipes.
- fixtureBox(mount,radiatorMat,rad.widthM-.025,rad.heightM-.055,.025,0,rad.bottomM+rad.heightM/2,front-.024);
- for(let i=0;i<8;i++){
-  const y=rad.bottomM+.044+i*(rad.heightM-.090)/7;
-  fixtureBox(mount,radiatorMat,rad.widthM-.012,.064,.038,0,y,front+.005);
+// White, flat horizontal-panel radiator on the SHORT VERTICAL WALL x=250,
+// y=460..568 on the reception side: the red line beside the window in the plan.
+const heater=PLAN.fixtures?.receptionRadiator;
+if(heater){
+ const group=wallFacingFixture(heater,heater.centerAlongM);
+ const front=PLAN.wallOuter/2+.058;
+ decorativeBlock(group,radiatorMat,heater.widthM-.014,heater.heightM-.045,.026,
+  0,heater.bottomM+heater.heightM/2,front-.022);
+ const count=8;
+ for(let i=0;i<count;i++){
+  const h=(heater.heightM-.090)/count;
+  const y=heater.bottomM+.045+(i+.5)*h;
+  decorativeBlock(group,radiatorMat,heater.widthM-.008,h-.008,.038,0,y,front+.006);
  }
- for(const x of [-rad.widthM/2+.012,rad.widthM/2-.012])
-  fixtureBox(mount,radiatorMat,.025,rad.heightM-.055,.042,x,rad.bottomM+rad.heightM/2,front+.006);
- const pipeMat=new THREE.MeshStandardMaterial({color:'#e5ded2',roughness:.60,metalness:.12});
  for(const side of [-1,1]){
-  const x=side*(rad.widthM/2-.084),height=rad.bottomM+.055;
-  const pipe=new THREE.Mesh(new THREE.CylinderGeometry(.010,.010,height,8),pipeMat);
-  pipe.position.set(x,height/2+.010,front-.006);
-  pipe.castShadow=true;mount.add(pipe);
-  fixtureBox(mount,plateMat,.040,.028,.042,x,rad.bottomM+.022,front+.006);
+  const x=side*(heater.widthM/2-.070);
+  const pipeHeight=heater.bottomM+.030;
+  const pipe=new THREE.Mesh(new THREE.CylinderGeometry(.010,.010,pipeHeight,8),radiatorMat);
+  pipe.position.set(x,pipeHeight/2+.010,front-.012);
+  pipe.castShadow=true;pipe.receiveShadow=true;group.add(pipe);
+  decorativeBlock(group,radiatorValveMat,.037,.034,.043,x,heater.bottomM+.018,front+.005);
  }
 }
-for(const plate of PLAN.fixtures.receptionPlates){
- const mount=fixtureMount(plate.wallA,plate.wallB,plate.alongM);
- const z=PLAN.wallOuter/2+.012;
- const isSocket=plate.type==='doubleSocket',w=isSocket?.177:.145,h=isSocket?.092:.098;
- fixtureBox(mount,plateMat,w,h,.013,0,plate.heightM,z);
- fixtureBox(mount,skirtingMat,w-.014,h-.014,.004,0,plate.heightM,z+.009,false);
- if(isSocket){
-  // Tiny simplified UK double socket symbols on a brushed metal plate.
-  for(const x of [-.044,.044]){
-   fixtureBox(mount,insetMat,.010,.014,.002,x,plate.heightM+.014,z+.014,false);
-   fixtureBox(mount,insetMat,.009,.013,.002,x-.020,plate.heightM-.012,z+.014,false);
-   fixtureBox(mount,insetMat,.009,.013,.002,x+.020,plate.heightM-.012,z+.014,false);
-  }
+// Switch/socket plates on the SHORT HORIZONTAL WALL y=568 immediately above the kitchen,
+// shown as red dots next to the radiator on the supplied floor-plan annotation.
+for(const plate of PLAN.fixtures?.receptionPlates||[]){
+ const group=wallFacingFixture(plate,plate.alongM);
+ const z=PLAN.wallInner/2+.012;
+ const switchBank=plate.type==='switchBank';
+ const width=switchBank?.136:.154,height=switchBank?.092:.086;
+ decorativeBlock(group,socketPlateMat,width,height,.011,0,plate.heightM,z);
+ decorativeBlock(group,socketFaceMat,width-.015,height-.015,.004,0,plate.heightM,z+.009);
+ if(switchBank){
+  for(const x of [-.033,.033])
+   decorativeBlock(group,socketPlateMat,.023,.036,.008,x,plate.heightM,z+.018);
  }else{
-  for(const x of [-.032,.032])
-   fixtureBox(mount,plateMat,.021,.030,.009,x,plate.heightM,z+.019,false);
+  for(const x of [-.037,.037]){
+   decorativeBlock(group,socketHoleMat,.009,.013,.002,x,plate.heightM+.012,z+.013);
+   decorativeBlock(group,socketHoleMat,.007,.011,.002,x-.015,plate.heightM-.011,z+.013);
+   decorativeBlock(group,socketHoleMat,.007,.011,.002,x+.015,plate.heightM-.011,z+.013);
+  }
  }
 }
 function doorPanel(s){
@@ -412,9 +347,7 @@ function doorPanel(s){
  // The requested 1,931 mm door ends 169 mm below the confirmed 2,100 mm ceiling.
  // The opaque white header fills the difference, without changing the ceiling or door width.
  const headerHeight=H-DOOR_H;
- if(headerHeight>0){const sealedHeaderHeight=headerHeight+WALL_TOP_SEAL_M;
-  rectangularWall(s.a,s.b,sealedHeaderHeight,.085,edgeMat,DOOR_H+sealedHeaderHeight/2,false);
- }
+ if(headerHeight>0)rectangularWall(s.a,s.b,headerHeight,.085,edgeMat,DOOR_H+headerHeight/2,false);
  const handle=new THREE.Mesh(new THREE.SphereGeometry(.032,8,6),new THREE.MeshStandardMaterial({color:'#a8a198',metalness:.42,roughness:.42}));
  handle.position.set(hinge.x+dest.x*.85,1.0,hinge.y+dest.y*.85);handle.castShadow=true;architectural.add(handle);
  if(!s.open){
@@ -423,9 +356,7 @@ function doorPanel(s){
  }
 }
 PLAN.doors.forEach(doorPanel);
-// A mitered 115 mm outer roof margin covers the exterior wall thickness plus a 20 mm sealing lip.
-// This prevents sub-pixel cracks at the roof perimeter without changing the 2.10 m room ceiling height.
-const ceiling=new THREE.Mesh(floorGeometry(sealedCeilingOutline(PLAN.outline,ROOF_EDGE_SEAL_M)),new THREE.MeshStandardMaterial({color:'#fffaf3',side:THREE.DoubleSide,roughness:1}));
+const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#ffffff',side:THREE.DoubleSide,roughness:1}));
 ceiling.position.y=H;
 // CRITICAL: the ceiling must CAST shadows, not just receive them. Without this,
 // afternoon sunlight enters from above and reaches the bedroom despite opaque
@@ -628,7 +559,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.21 ready (photo-based reception fixtures and window framing; fixed 2.10 m ceiling and 1931 mm doors). Left-stick locomotion now follows headset direction combined with snap-turn rotation.');
+switchMode('plan');status('Shell v0.22 ready (v0.19 architecture restored; radiator LEFT of big reception window by kitchen, adjacent electrical plates, perimeter skirting). Left-stick locomotion now follows headset direction combined with snap-turn rotation.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
