@@ -10,7 +10,8 @@ export const PLAN = {
   balconyAreaM2: 5.11,      // source's larger balcony; not modelled yet
   pxPerMetre: 85.05,        // calibrated to printed kitchen/reception widths; approximate
   centre: [654, 447],
-  ceilingHeight: 2.10,      // virtual ceiling lowered another 10 cm from v0.9 (original remembered 2.30 m)
+  ceilingHeight: 2.00,      // virtual ceiling lowered 10 cm from live v0.10, user-requested
+  doorHeight: 1.76,          // preserve internal door slab height from v0.10; independent of ceilingHeight
   wallOuter: 0.19,          // provisional wall construction thicknesses
   wallInner: 0.11,
   spawn: [568, 632],
@@ -73,5 +74,5 @@ export const PLAN = {
     { id:'bath',name:'Bathroom door', a:[745,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',a:[778,652],b:[778,576],open:true,swing:1.12 }
   ],
-  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. Model ceiling now 2.10 m at user request (previous virtual 2.20 m); wall thicknesses, framing and door swings remain provisional.'
+  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. Model ceiling now 2.00 m at user request; doors remain 1.76 m as in v0.10; wall thicknesses, framing and door swings remain provisional.'
 };
