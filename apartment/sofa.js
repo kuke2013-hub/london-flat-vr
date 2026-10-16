@@ -1,5 +1,5 @@
 /**
- * Photo-referenced chocolate three-seat sofa, v0.30.
+ * Photo-referenced warm-grey three-seat sofa and soft rug, v0.31.
  * Procedural, true 3D (not a billboard), with no downloaded models or textures.
  * Approximate silhouette from resident's front/side/top sofa reference and flat photos.
  * All dimensions in metres; intentionally lightweight for Meta Quest rendering.
@@ -9,7 +9,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
   if (!(width>2 && depth>.8)) throw new RangeError('Invalid sofa size');
   const sofa=new THREE.Group();
-  sofa.name='Chocolate-brown three-seat sofa · photo referenced';
+  sofa.name='Warm charcoal-grey three-seat sofa · photo referenced';
   sofa.userData={type:'sofa',source:'supplied orthographic and living-room photographs',widthM:width,depthM:depth};
   const geometryCache=new Map();
   function softMesh(name,w,h,d,r,material,x,y,z) {
@@ -40,12 +40,20 @@ export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
   fabric.colorSpace=THREE.SRGBColorSpace;
   fabric.wrapS=fabric.wrapT=THREE.RepeatWrapping;fabric.repeat.set(2,2);
   fabric.anisotropy=2;
-  const upholstery=new THREE.MeshStandardMaterial({color:0x422d24,map:fabric,roughness:.97,metalness:0});
-  const seats=new THREE.MeshStandardMaterial({color:0x4c3429,map:fabric,roughness:.96,metalness:0});
-  const cushions=new THREE.MeshStandardMaterial({color:0x39271f,map:fabric,roughness:.98,metalness:0});
-  const seam=new THREE.MeshStandardMaterial({color:0x2e211b,roughness:1});
-  const chrome=new THREE.MeshStandardMaterial({color:0xc3c3bf,metalness:.82,roughness:.22});
-  const feetMetal=new THREE.MeshStandardMaterial({color:0x9f9f9c,metalness:.68,roughness:.33});
+  // The real sofa appears dark graphite in the room photos. Keep a little warmth,
+  // but make neutral grey the dominant impression (no reddish brown).
+  const upholstery=new THREE.MeshStandardMaterial({color:0x5a5551,map:fabric,roughness:.97,metalness:0});
+  const seats=new THREE.MeshStandardMaterial({color:0x67615d,map:fabric,roughness:.96,metalness:0});
+  const cushions=new THREE.MeshStandardMaterial({color:0x524e4b,map:fabric,roughness:.98,metalness:0});
+  const seam=new THREE.MeshStandardMaterial({color:0x45403d,roughness:1});
+  // Pure physically metallic material looked BLACK in this scene because there's
+  // no reflective HDR environment. A silver diffuse component plus a restrained
+  // emissive lift and a tiny untone-mapped glint makes chrome legible in Quest.
+  const chrome=new THREE.MeshStandardMaterial({color:0xf5f5f7,metalness:.55,roughness:.13,
+   emissive:0xa9adb2,emissiveIntensity:.38});
+  const chromeGlint=new THREE.MeshBasicMaterial({color:0xeef2f6,toneMapped:false});
+  const feetMetal=new THREE.MeshStandardMaterial({color:0xc4c5c7,metalness:.55,roughness:.24,
+   emissive:0x6f7275,emissiveIntensity:.22});
   const innerWidth=width-.49;
   const halfSeat=innerWidth/2;
   // Low upholstered plinth under two generous individually shaped seat cushions.
@@ -68,7 +76,7 @@ export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
       halfSeat-.034,.334,.155,.050,upholstery,x,.582,-depth/2+.251);
     back.rotation.x=-.075;
   }
-  // Exactly two loose chocolate throw cushions, with slight natural asymmetry.
+  // Exactly two loose warm-grey throw cushions, with slight natural asymmetry.
   for(const side of [-1,1]){
     const x=side*.49;
     const pillow=softMesh(side<0?'Loose cushion left':'Loose cushion right',
@@ -91,6 +99,15 @@ export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
     const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal');
     const obj=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,points.length*8),radius,7,false),chrome);
     obj.name=name;obj.castShadow=true;obj.receiveShadow=true;sofa.add(obj);
+    // Fine bright reflection line follows the OUTER face of each rail. Unlike
+    // environment-map reflections this stays visible on the Meta Quest headset.
+    const glintPts=points.map(p=>new THREE.Vector3(
+      p[0]+Math.sign(p[0])*.0045,p[1]+.002,p[2]+.001));
+    const glint=new THREE.Mesh(new THREE.TubeGeometry(
+      new THREE.CatmullRomCurve3(glintPts,false,'centripetal'),
+      Math.max(12,points.length*8),.0017,5,false),chromeGlint);
+    glint.name=name+' · polished highlight';glint.castShadow=false;
+    sofa.add(glint);
   }
   for(const side of [-1,1]){
     const x=side*(width/2+.015); // Chrome hoop remains visible OUTSIDE upholstery.
@@ -115,4 +132,52 @@ export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
     leg.castShadow=true;sofa.add(leg);
   }
   return sofa;
+}
+
+
+/**
+ * Thick light greige woven rug, designed to project well forward of the sofa.
+ * Its base and raised textile top are real geometry, not a decal on the floor.
+ * Shared canvas texture gives a soft, irregular woven pile without hair meshes.
+ */
+export function createSofaRug(THREE, {width=2.55,depth=1.90,thicknessM=.048} = {}) {
+  if(!(width>1.5&&depth>1&&thicknessM>=.025))
+   throw new RangeError('Invalid rug dimensions');
+  const rug=new THREE.Group();rug.name='Raised light greige woven living-room rug';
+  rug.userData={type:'rug',widthM:width,depthM:depth,thicknessM};
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+  const ctx=canvas.getContext('2d'),image=ctx.createImageData(256,256);
+  let seed=27837;
+  function rng(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;}
+  for(let y=0;y<256;y++)for(let x=0;x<256;x++){
+    const i=(y*256+x)*4;
+    const weave=((x%4===0)?5:0)+((y%5===0)?-4:0);
+    const noise=(rng()-.5)*23+weave;
+    image.data[i]=Math.max(0,Math.min(255,220+noise));
+    image.data[i+1]=Math.max(0,Math.min(255,214+noise));
+    image.data[i+2]=Math.max(0,Math.min(255,205+noise));
+    image.data[i+3]=255;
+  }
+  ctx.putImageData(image,0,0);
+  // Short, irregular specks suggest loop-pile fibres at walking height.
+  for(let i=0;i<9000;i++){
+    const x=Math.floor(rng()*256),y=Math.floor(rng()*256);
+    ctx.fillStyle=rng()>.5?'rgba(250,246,239,.19)':'rgba(112,106,100,.095)';
+    ctx.fillRect(x,y,1+rng()*2,1);
+  }
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+  texture.repeat.set(width*1.1,depth*1.1);texture.anisotropy=2;
+  const bodyMat=new THREE.MeshStandardMaterial({color:0xc5bdb2,roughness:1});
+  const pileMat=new THREE.MeshStandardMaterial({color:0xe4dfd8,map:texture,roughness:1,metalness:0});
+  const bodyHeight=thicknessM*.75,pileHeight=thicknessM*.46;
+  const body=new THREE.Mesh(new RoundedBoxGeometry(width,bodyHeight,depth,3,.014),bodyMat);
+  body.name='Thick woven carpet bound edge';
+  body.position.y=bodyHeight/2;body.castShadow=true;body.receiveShadow=true;rug.add(body);
+  const pile=new THREE.Mesh(new RoundedBoxGeometry(width-.024,pileHeight,depth-.024,3,.009),pileMat);
+  pile.name='Light raised soft woven top';
+  pile.position.y=thicknessM-pileHeight/2;
+  pile.castShadow=true;pile.receiveShadow=true;rug.add(pile);
+  return rug;
 }
