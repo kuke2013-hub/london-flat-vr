@@ -284,37 +284,64 @@ if(kitchenTransition){
 }
 function beam(a,b,y,height,thick=.044){rectangularWall(a,b,height,thick,frameMat,y+height/2,false);}
 function windowPane(spec){
- const a=m(spec.a),b=m(spec.b);const len=a.distanceTo(b);const mid=a.clone().add(b).multiplyScalar(.5);
+ const a=m(spec.a),b=m(spec.b),len=a.distanceTo(b),mid=a.clone().add(b).multiplyScalar(.5);
  const rot=-Math.atan2(b.y-a.y,b.x-a.x);
- const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
- glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;
- // Transparent glass lets sunlight pass. Only opaque mullions, sills, headers,
- // doors and walls cast directional-light shadows.
- glass.castShadow=false;glass.receiveShadow=false;architectural.add(glass);
- // Clear glazing still collides: outside balconies are deliberately not built yet.
+ // Keep the original collision boundary while the external balconies remain unbuilt.
  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
  world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,H/2,.028).setTranslation(mid.x,H/2,mid.y).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}),staticBody);
  collisionSegment(spec.a,spec.b,.056);
- // Vertical metal mullions and a restrained floor-to-ceiling frame.
+ if(spec.name==='Reception balcony glazing'){
+  // The photos show four vertical glazed modules: one balcony door plus fixed side panels.
+  // Their widths are visually estimated, not measured, and the fourth lies outside the photo.
+  const assembly=new THREE.Group();assembly.position.set(mid.x,0,mid.y);assembly.rotation.y=rot;
+  architectural.add(assembly);
+  const divisions=[0,...spec.mullions,1];
+  const lower=spec.lowerPanelM||.24;
+  function part(w,h,d,x,y,z=0,material=frameMat,shadow=true){
+   const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+   mesh.position.set(x,y,z);mesh.castShadow=shadow;mesh.receiveShadow=shadow;assembly.add(mesh);
+   return mesh;
+  }
+  for(let j=0;j<divisions.length-1;j++){
+   const left=-len/2+divisions[j]*len,right=-len/2+divisions[j+1]*len;
+   const center=(left+right)/2,w=right-left;
+   const glassBottom=lower+.025,glassTop=H-.15;
+   const glass=new THREE.Mesh(new THREE.BoxGeometry(Math.max(.05,w-.072),glassTop-glassBottom,.012),glassMat);
+   glass.position.set(center,(glassBottom+glassTop)/2,0);
+   glass.castShadow=false;glass.receiveShadow=false;assembly.add(glass);
+   // White opaque lower kick panel and horizontal frame, as in the balcony photo.
+   part(w-.065,lower-.035,.039,center,(lower-.035)/2+.025,.004);
+   part(w-.047,.045,.058,center,lower+.007,.006);
+   if(j===spec.doorSection){
+    // Slimmer inset framing for the opening door, with visible metallic handle.
+    part(.032,H-.18,.067,left+.048,(H-.18)/2+.045,.028);
+    part(.032,H-.18,.067,right-.048,(H-.18)/2+.045,.028);
+    part(w-.085,.035,.070,center,H-.135,.028);
+    const metal=new THREE.MeshStandardMaterial({color:'#b8b4aa',metalness:.72,roughness:.35});
+    part(.024,.125,.052,right-.117,1.03,.080,metal);
+    part(.085,.018,.050,right-.153,1.025,.107,metal);
+   }
+  }
+  for(const t of divisions)part(.059,H,.085,-len/2+t*len,H/2);
+  part(len,.080,.090,0,.041);             // Continuous bottom track
+  part(len,.078,.088,0,H-.046);           // Top rail meets sealed ceiling
+  part(len,.028,.068,0,H-.173,.012);      // Narrow upper sash line
+  // Discreet white curtain track on the room side of the wall.
+  part(len-.18,.017,.023,0,H-.215,.120,plateMat);
+  for(const t of [.10,.42,.70,.90])part(.023,.046,.039,-len/2+t*len,H-.194,.114);
+  return;
+ }
+ // Other glazing is unchanged in size and collision, with colour-neutral glass.
+ const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
+ glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;
+ glass.castShadow=false;glass.receiveShadow=false;architectural.add(glass);
  for(const t of [0,...spec.mullions,1]){
   const x=a.x+(b.x-a.x)*t,z=a.y+(b.y-a.y)*t;
   const bar=new THREE.Mesh(new THREE.BoxGeometry(.044,H,.044),frameMat);
   bar.position.set(x,H/2,z);bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
  }
  for(const y of [.025,H-.025])beam(spec.a,spec.b,y-.025,.05);
- // Full-height glazing can still have narrow window thresholds / low frames.
- // The fixed glass panels flanking the reception balcony door get a narrow
- // horizontal frame, casting recognizable sun bands across the wood floor.
- if(spec.name==='Reception balcony glazing'){
-  const p=(t)=>[spec.a[0]+(spec.b[0]-spec.a[0])*t,spec.a[1]+(spec.b[1]-spec.a[1])*t];
-  for(const [t0,t1] of [[0,0.50],[0.74,1]]){
-   beam(p(t0),p(t1),0.88,0.055,0.07);
-  }
-  // A slightly raised balcony door threshold; still nearly floor-to-ceiling glazing.
-  beam(spec.a,spec.b,0.065,0.07,0.095);
- }
- // Small discreet door handles at eye / waist level, not a speculative detailed door style.
- const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#b3b5b4',metalness:.75,roughness:.3}));
+ const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),plateMat);
  handle.position.set(mid.x,1.02,mid.y);handle.castShadow=true;architectural.add(handle);
 }
 PLAN.glazing.forEach(windowPane);
