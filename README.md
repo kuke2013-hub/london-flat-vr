@@ -69,8 +69,12 @@ After trying shorter doors, the user requested a return to the **1,981 mm high**
 
 Do not alter the confirmed Quest controller logic: left-stick forward/strafe recomputes the headset plus snap-turn heading, right-stick 30° snap turns about the head position. Keep the user's **90% VR viewer scale** unchanged.
 
-## Current geometry — v0.16
+## Previous geometry — v0.16 (superseded by v0.17)
 
 The user explicitly rejected shortening the doors to meet the ceiling and requested **all door leaves be raised by 200 mm**, from 1,981 mm to **2,181 mm**. The confirmed ceiling stays exactly **2.10 m**. The 2.181 m panels therefore necessarily extend **81 mm above** the ceiling plane. This is intentional at the user's request and is not a physically buildable standard flat doorway with the existing 2.10 m ceiling: the ceiling will obscure/intersect the protruding door tops in VR unless the ceiling is later changed or local openings/soffits are approved. The code must **not throw an error for DOOR_H >= H**, shorten the doors automatically, or modify the confirmed ceiling height. The solid white header is built only when H > DOOR_H.
 
 The entrance door is a custom **1,538 mm wide** leaf (+500 mm vs 1,038 mm in v0.15), still **44 mm thick**. Its doorway and adjacent lower corridor recess are resized by moving the left jamb in the plan; this now extends west of the old x=495 kitchen corner, so the kitchen-edge wall and floor boundary around y=662 to 756 were reshaped locally to avoid a backward wall or overlapping floor. Other door leaves remain 762 mm wide/35 mm thick; all heights 2,181 mm. This is a proportion study, **not an applicable building/fire safety design**. Keep the working Quest thumbstick movement, 90% VR scale, neutral light, and white ceiling/walls unchanged.
+
+## Current geometry — v0.17
+
+The user requested all doors **10 cm shorter than v0.16**, so all door leaves are now **2.081 m (2081 mm) high**, independent of the **confirmed 2.10 m** ceiling. The prior 81 mm ceiling intersection is resolved; an opaque white **19 mm header** spans from each door top to the ceiling, casting shadows consistently with other solid wall sections. Door widths and thicknesses remain the custom **1.538 m / 44 mm entrance**, and **0.762 m / 35 mm internal doors**, including two 0.762 m reception leaves. Entrance opening and adjusted kitchen-side entrance recess remain unchanged. Preserve the 90% VR viewer scale, confirmed left-stick headset-relative movement and right-stick snap turns, pure-white wall and ceiling finishes, and neutral ambient lighting. This remains a virtual proportion model, not a physical door-frame or fire-safety plan.
