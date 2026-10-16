@@ -30,3 +30,17 @@ Do not add unrelated cube-demo objects, external character models or experimenta
 ## Provenance
 
 The prior experiments remain untouched in [wood-box-vr](https://github.com/kuke2013-hub/wood-box-vr). This repository is a clean project for the apartment.
+
+## First working draft — shell v0.1 (16 October 2026)
+
+Files: `index.html` (Three.js/WebXR/Rapier engine, room rendering, desktop plan and walkthrough) and `apartment/layout.js` (editable coordinates and architectural geometry).
+
+The supplied Clephane Road estate-agent plan states **52.58 m² gross internal area** and **5.11 m² gross balcony area**. Its reception, kitchen and bedroom dimensions guide provisional scaling. The shell includes a tapered exterior wall, interior rooms, gaps for internal doors, floor-to-ceiling reception and bedroom glazing, pale timber flooring, cream bedroom carpet, and grey kitchen flooring. Balconies and outdoor scenery are not modelled. Ceiling height (2.50 m), thicknesses, window framing and door swings **are not measured**.
+
+**Desktop:** Open the published GitHub Pages URL. Plan view uses drag to pan and scroll to zoom. Use *Walk inside* for WASD movement; click the scene to enable mouse look, press Esc to unlock. *Reset position* returns to the corridor. Performance counters are displayed.
+
+**Meta Quest 3:** Open the GitHub Pages URL in Meta Quest Browser and select *Enter VR*. Use the left controller thumbstick to move, or move naturally within your safe tracked play space. Walls/windows are collision boundaries for joystick movement. The VR headset must be used within Guardian/boundary safety limits. The balconies are deliberately blocked by glazing until modelled.
+
+**To publish with GitHub Pages:** Repository → Settings → Pages → Build and deployment → Deploy from a branch → `main` / `/(root)` → Save. When Pages is deployed, the expected address is https://kuke2013-hub.github.io/london-flat-vr/ .
+
+**Testing state:** JavaScript syntax and source commits checked. Desktop browser execution and actual Quest 3 VR performance still require testing; this file does not claim that VR has been tested.
