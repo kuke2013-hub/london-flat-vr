@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.17</title>
+<title>London Flat VR · Architectural Shell v0.18</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
@@ -16,11 +16,11 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.17</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.18</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative left-stick movement · no furniture or outside scenery yet.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><select id="sun-time" aria-label="June sunlight time" title="June 21 afternoon lighting (BST)"><option value="15">June 3 pm</option><option value="16" selected>June 4 pm</option><option value="17">June 5 pm</option></select><span id="vr-slot"></span></div>
  <div id="status">Preparing Three.js and Rapier…</div>
- <div id="data"><strong>Finishes:</strong> pale wood / cream bedroom carpet / grey kitchen floor / light brown doors.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1538 × 2081 × 44 mm, internal doors 762 × 2081 × 35 mm (19 mm below ceiling); Quest viewer at 90% scale. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+ <div id="data"><strong>Finishes:</strong> pale wood / cream bedroom carpet / grey kitchen floor / light brown doors.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1538 × 2031 × 44 mm, internal doors 762 × 2031 × 35 mm (69 mm below ceiling); Quest viewer at 90% scale. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
 <div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
@@ -36,9 +36,9 @@ const status = s => { $('status').textContent=s; };
 const scale = 1 / PLAN.pxPerMetre;
 const m = p => new THREE.Vector2((p[0] - PLAN.centre[0])*scale, (p[1] - PLAN.centre[1])*scale);
 const H = PLAN.ceilingHeight;
-const DOOR_H = PLAN.doorHeight; // 2.081 m door height; 10 cm shorter than v0.16, independent of ceiling.
+const DOOR_H = PLAN.doorHeight; // 2.031 m doors; 5 cm shorter than v0.17, independent of ceiling.
 if(DOOR_H<=0||H<=0)throw new Error('Door and ceiling heights must be positive.');
-const DOOR_CEILING_OVERLAP = Math.max(0,DOOR_H-H); // Zero for v0.17; door leaves end 19 mm below ceiling.
+const DOOR_CEILING_OVERLAP = Math.max(0,DOOR_H-H); // Zero in v0.18; door leaves end 69 mm below ceiling.
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#d8d8d6'); // Neutral backdrop instead of blue-grey behind glazing.
 const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', alpha:false });
@@ -252,8 +252,8 @@ function doorPanel(s){
  const leafThickness=standard.thickness;
  const mesh=new THREE.Mesh(new THREE.BoxGeometry(length,DOOR_H,leafThickness),doorMat);
  mesh.position.set(center.x,DOOR_H/2,center.y);mesh.rotation.y=-theta;mesh.castShadow=true;mesh.receiveShadow=true;architectural.add(mesh);
- // The requested 2,081 mm door ends 19 mm below the confirmed 2,100 mm ceiling.
- // A slim opaque white header fills the difference, without changing the ceiling or door width.
+ // The requested 2,031 mm door ends 69 mm below the confirmed 2,100 mm ceiling.
+ // The opaque white header fills the difference, without changing the ceiling or door width.
  const headerHeight=H-DOOR_H;
  if(headerHeight>0)rectangularWall(s.a,s.b,headerHeight,.085,edgeMat,DOOR_H+headerHeight/2,false);
  const handle=new THREE.Mesh(new THREE.SphereGeometry(.032,8,6),new THREE.MeshStandardMaterial({color:'#a8a198',metalness:.42,roughness:.42}));
@@ -467,7 +467,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.17 ready (Quest viewer 90%; fixed 2.10 m ceiling; 2081 mm doors; 1538 mm entrance; 19 mm white headers). Left-stick locomotion now follows headset direction combined with snap-turn rotation.');
+switchMode('plan');status('Shell v0.18 ready (Quest viewer 90%; fixed 2.10 m ceiling; 2031 mm doors; 1538 mm entrance; 69 mm white headers). Left-stick locomotion now follows headset direction combined with snap-turn rotation.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
