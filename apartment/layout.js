@@ -25,7 +25,7 @@ export const PLAN = {
   pxPerMetre: PX_PER_METRE,        // calibrated to printed kitchen/reception widths; approximate
   centre: [654, 447],
   ceilingHeight: 2.10,      // CONFIRMED virtual room ceiling height; intentionally unchanged by taller doors
-  doorHeight: 2.081,         // v0.17: 10 cm shorter than v0.16, below the confirmed 2.10 m ceiling
+  doorHeight: 2.031,         // v0.18: exactly 5 cm shorter than v0.17; ceiling remains 2.10 m
   doorStandards: {
     entrance: {width: FRONT_DOOR_WIDTH, thickness: 0.044}, // custom 1538 mm wide entrance leaf, 44 mm thick
     internal: {width: INTERNAL_DOOR_WIDTH, thickness: 0.035} // model 762 mm leaf, standard 35 mm thick
@@ -94,5 +94,5 @@ export const PLAN = {
     { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
   ],
-  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. CONFIRMED virtual ceiling 2.10 m unchanged. Door leaves set to 2081 mm (100 mm shorter than v0.16), sitting 19 mm beneath the unchanged 2.10 m ceiling. Entrance widened another 500 mm to custom 1538 mm / 44 mm thick; lower hall recess and kitchen corner were adjusted. Internal leaves remain 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
+  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. CONFIRMED virtual ceiling 2.10 m unchanged. Door leaves set to 2031 mm (50 mm shorter than v0.17), sitting 69 mm beneath the unchanged 2.10 m ceiling. Entrance widened another 500 mm to custom 1538 mm / 44 mm thick; lower hall recess and kitchen corner were adjusted. Internal leaves remain 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
 };
