@@ -4,23 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.24</title>
+<title>London Flat VR · Architectural Shell v0.25</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
 canvas{display:block}#stage{position:fixed;inset:0}#ui{position:fixed;top:14px;left:14px;width:min(360px,calc(100vw - 28px));background:rgba(21,30,35,.88);color:#f2f3f1;border:1px solid #ffffff30;border-radius:13px;padding:14px 16px;z-index:5;backdrop-filter:blur(10px);box-shadow:0 10px 28px #0003}
 h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{font-size:11px;line-height:1.45;color:#ccd6d9;margin-bottom:9px}#controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}button,select{background:#34434b;border:1px solid #ffffff35;border-radius:8px;padding:8px 9px;color:#fafafa;font-size:12px;cursor:pointer}button.active{background:#476d67;border-color:#9cdbd1}button:hover{background:#4e6572}#vr-slot button{background:#7dd9c1!important;color:#0b2221!important;border:0!important;font-weight:700!important}#status{font-size:11px;margin-top:9px;color:#a9c8d1;line-height:1.5}#data{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff25;color:#d6dedc;font-size:11px;line-height:1.5}#data strong{font-weight:650;color:#fff}#footer{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px);z-index:3;padding:8px 12px;border-radius:8px;background:#131a1cce;color:#f6f6f6;text-align:center;font-size:11px;line-height:1.4;pointer-events:none}#footnotes{position:fixed;top:15px;right:15px;z-index:3;background:#101a20b8;color:#eef5f5;border-radius:9px;padding:9px 11px;font:11px/1.6 ui-monospace,SFMono-Regular,monospace}#footnotes span{color:#8ed5bd}@media(max-width:650px){#ui{padding:10px 11px;width:calc(100vw - 20px);top:10px;left:10px}#footnotes{top:auto;right:10px;bottom:65px}#footer{bottom:7px}}
+/* v0.25 seasonal solar calendar: small controls remain usable before starting Quest VR. */
+#solar-panel{margin-top:10px;padding-top:9px;border-top:1px solid #ffffff25}
+#solar-panel-title{font-size:10px;letter-spacing:.075em;color:#e2e4df;font-weight:650;margin-bottom:7px}
+#solar-controls{display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap}
+#solar-controls label{display:flex;flex-direction:column;gap:3px;font-size:10px;color:#d5ddd9}
+#solar-controls label:first-child{flex:1 1 108px}
+#solar-controls label:nth-child(2){flex:0 0 58px}
+#solar-controls label:nth-child(3){flex:0 0 91px}
+#solar-controls select{width:100%;min-width:0;padding:7px 5px;font-size:12px;background:#2c3a3d}
+#solar-info{margin-top:7px;font-size:11px;line-height:1.5;color:#dcd3bd;min-height:31px;font-variant-numeric:tabular-nums}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 </head>
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.24</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.25</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative left-stick movement · no furniture or outside scenery yet.</div>
- <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><select id="sun-time" aria-label="June sunlight time" title="June 21 afternoon lighting (BST)"><option value="15">June 3 pm</option><option value="16" selected>June 4 pm</option><option value="17">June 5 pm</option></select><span id="vr-slot"></span></div>
+ <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
+ <div id="solar-panel">
+  <div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
+  <div id="solar-controls" role="group" aria-label="Choose the date and time for the sun">
+   <label for="sun-month">Month<select id="sun-month" aria-label="Solar month">
+    <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6" selected>June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+   </select></label>
+   <label for="sun-day">Day<select id="sun-day" aria-label="Day of the month"></select></label>
+   <label for="sun-hour">Hour<select id="sun-hour" aria-label="Local London hour between 06:00 and 23:00"></select></label>
+  </div>
+  <div id="solar-info" aria-live="polite">Calculating the seasonal sun…</div>
+ </div>
  <div id="status">Preparing Three.js and Rapier…</div>
- <div id="data"><strong>Finishes:</strong> v0.19 pale wood / cream bedroom carpet / grey kitchen floor / white walls. <strong>New:</strong> white skirting, radiator and electric plates LEFT of the main window beside the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. June 21 sunlight is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+ <div id="data"><strong>Finishes:</strong> v0.19 pale wood / cream bedroom carpet / grey kitchen floor / white walls. <strong>New:</strong> white skirting, radiator and electric plates LEFT of the main window beside the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. Seasonal London sun position and daylight time are calculated; plan compass orientation is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
 <div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
@@ -75,33 +96,127 @@ scene.add(sunlight.target,sunlight);
 // diffuse indirect daylight without producing a false direct light patch.
 // We can add baked, room-local reflected light after the architecture is measured.
 
-// Approximate solar position for 21 June over Islington. North on the supplied plan
-// points upper-right: pixel map north ≈ (+0.58,-0.815). Map pixel Y becomes world Z.
-// Both the local time (BST) and this compass reading are editable assumptions.
-function setAfternoonSun(bstHour){
- const lat=51.54*Math.PI/180, longitude=-0.11, day=172;
- const utcHour=bstHour-1;
- const gamma=2*Math.PI/365*(day-1+(utcHour-12)/24);
- const eq=229.18*(0.000075+0.001868*Math.cos(gamma)-0.032077*Math.sin(gamma)-0.014615*Math.cos(2*gamma)-0.040849*Math.sin(2*gamma));
- const decl=0.006918-0.399912*Math.cos(gamma)+0.070257*Math.sin(gamma)-0.006758*Math.cos(2*gamma)+0.000907*Math.sin(2*gamma)-0.002697*Math.cos(3*gamma)+0.00148*Math.sin(3*gamma);
- const solarMin=utcHour*60+eq+4*longitude;
- const ha=(solarMin/4-180)*Math.PI/180;
- const alt=Math.asin(THREE.MathUtils.clamp(Math.sin(lat)*Math.sin(decl)+Math.cos(lat)*Math.cos(decl)*Math.cos(ha),-1,1));
- const az=Math.atan2(Math.sin(ha),Math.cos(ha)*Math.sin(lat)-Math.tan(decl)*Math.cos(lat))+Math.PI;
- const northX=0.58,northZ=-Math.sqrt(1-0.58**2),eastX=-northZ,eastZ=northX;
- const east=Math.sin(az),north=Math.cos(az);
- const horizontalX=east*eastX+north*northX,horizontalZ=east*eastZ+north*northZ;
- const radius=13.5;
- sunlight.position.set(sunlight.target.position.x+horizontalX*radius,sunlight.target.position.y+Math.tan(alt)*radius,sunlight.target.position.z+horizontalZ*radius);
- sunlight.target.updateMatrixWorld();sunlight.updateMatrixWorld();
- sunlight.shadow.needsUpdate=true;
- return {azimuth:THREE.MathUtils.radToDeg(az),elevation:THREE.MathUtils.radToDeg(alt)};
+// Solar positions for Clephane Road, Islington: approximate coordinates 51.54 N, 0.11 W.
+// Equations: NOAA fractional-year, equation-of-time and declination model. Azimuth from TRUE north,
+// measured clockwise; the estate-agent plan's compass arrow (north ~= +X,-Z) is approximate.
+// Selected hours are local UK clock time, using GMT in winter and BST in summer.
+// 2026 is the simulation calendar year; all twelve months and valid dates are selectable.
+const SUN_YEAR=2026;
+const SUN_LAT_RAD=THREE.MathUtils.degToRad(51.54);
+const SUN_LONGITUDE=-0.11;
+const SUN_NORTH_X=.58,SUN_NORTH_Z=-Math.sqrt(1-.58**2);
+const SUN_EAST_X=-SUN_NORTH_Z,SUN_EAST_Z=SUN_NORTH_X;
+const SUN_M_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SUN_CARDINALS=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+const SUN_WARM_LOW=new THREE.Color('#ffbd82');
+const SUN_WARM_HIGH=new THREE.Color('#fff5e5');
+const SUN_BG_DAY=new THREE.Color('#ddd9d1');
+const SUN_BG_DUSK=new THREE.Color('#a88f7c');
+const SUN_BG_NIGHT=new THREE.Color('#171411');
+const sunMonthSelect=$('sun-month'),sunDaySelect=$('sun-day'),sunHourSelect=$('sun-hour');
+
+function daysInSolarMonth(month){return new Date(Date.UTC(SUN_YEAR,month,0)).getUTCDate();}
+function lastSundayOfSolarMonth(month){
+ const last=new Date(Date.UTC(SUN_YEAR,month,0));
+ return last.getUTCDate()-last.getUTCDay();
 }
-let solarStudy=setAfternoonSun(16);
-$('sun-time').addEventListener('change',e=>{
- solarStudy=setAfternoonSun(Number(e.target.value));
- status(`June ${e.target.value}:00 BST · solar elevation ${solarStudy.elevation.toFixed(0)}° · azimuth ${solarStudy.azimuth.toFixed(0)}° (approximate).`);
-});
+function isBSTDate(month,day){
+ // UK changes clocks on the last Sundays of March and October.
+ // All selectable hours are 06:00-23:00, safely beyond the 01:00/02:00 changeover.
+ if(month>3&&month<10)return true;
+ if(month===3)return day>=lastSundayOfSolarMonth(3);
+ if(month===10)return day<lastSundayOfSolarMonth(10);
+ return false;
+}
+function rebuildSolarDays(){
+ const month=Number(sunMonthSelect.value);
+ const preferred=Number(sunDaySelect.value)||21;
+ const maximum=daysInSolarMonth(month);
+ sunDaySelect.replaceChildren();
+ for(let day=1;day<=maximum;day++)sunDaySelect.add(new Option(String(day),String(day)));
+ sunDaySelect.value=String(Math.min(preferred,maximum));
+}
+for(let hour=6;hour<=23;hour++){
+ const label=String(hour).padStart(2,'0')+':00';
+ sunHourSelect.add(new Option(label,String(hour)));
+}
+sunHourSelect.value='16';
+rebuildSolarDays();
+sunDaySelect.value='21';
+
+function calculateLondonSun(month,day,localHour){
+ if(month<1||month>12||day<1||day>daysInSolarMonth(month)||localHour<6||localHour>23)
+  throw new RangeError('Requested solar date or hour is out of bounds');
+ const offset=isBSTDate(month,day)?1:0;
+ // Date.UTC is timezone-independent even if the viewer uses a different device timezone.
+ const instant=new Date(Date.UTC(SUN_YEAR,month-1,day,localHour-offset));
+ const doy=1+Math.floor((Date.UTC(instant.getUTCFullYear(),instant.getUTCMonth(),instant.getUTCDate())-Date.UTC(instant.getUTCFullYear(),0,1))/86400000);
+ const yearDays=(SUN_YEAR%4===0&&(SUN_YEAR%100!==0||SUN_YEAR%400===0))?366:365;
+ const utcHours=instant.getUTCHours()+instant.getUTCMinutes()/60;
+ const gamma=2*Math.PI/yearDays*(doy-1+(utcHours-12)/24);
+ const eqMinutes=229.18*(.000075+.001868*Math.cos(gamma)-.032077*Math.sin(gamma)
+  -.014615*Math.cos(2*gamma)-.040849*Math.sin(2*gamma));
+ const decl=.006918-.399912*Math.cos(gamma)+.070257*Math.sin(gamma)
+  -.006758*Math.cos(2*gamma)+.000907*Math.sin(2*gamma)
+  -.002697*Math.cos(3*gamma)+.00148*Math.sin(3*gamma);
+ const ha=THREE.MathUtils.degToRad((utcHours*60+eqMinutes+4*SUN_LONGITUDE)/4-180);
+ const sinAlt=Math.sin(SUN_LAT_RAD)*Math.sin(decl)+Math.cos(SUN_LAT_RAD)*Math.cos(decl)*Math.cos(ha);
+ const altitude=Math.asin(THREE.MathUtils.clamp(sinAlt,-1,1));
+ const azimuth=(Math.atan2(Math.sin(ha),Math.cos(ha)*Math.sin(SUN_LAT_RAD)-Math.tan(decl)*Math.cos(SUN_LAT_RAD))+3*Math.PI)%(2*Math.PI);
+ return {month,day,hour:localHour,zone:offset?'BST':'GMT',altitude,azimuth,
+  elevation:THREE.MathUtils.radToDeg(altitude),bearing:THREE.MathUtils.radToDeg(azimuth)};
+}
+function applyLondonSun(month,day,hour){
+ const solar=calculateLondonSun(month,day,hour);
+ const sinAlt=Math.max(0,Math.sin(solar.altitude));
+ const c=THREE.MathUtils.clamp;
+ // Real astronomical sun direction; its visible light disappears below the horizon.
+ const east=Math.sin(solar.azimuth),north=Math.cos(solar.azimuth);
+ const horizontalX=east*SUN_EAST_X+north*SUN_NORTH_X;
+ const horizontalZ=east*SUN_EAST_Z+north*SUN_NORTH_Z;
+ const distance=18;
+ sunlight.position.set(sunlight.target.position.x+distance*Math.cos(solar.altitude)*horizontalX,
+  sunlight.target.position.y+distance*Math.sin(solar.altitude),
+  sunlight.target.position.z+distance*Math.cos(solar.altitude)*horizontalZ);
+ sunlight.visible=solar.elevation>0;
+ sunlight.intensity=solar.elevation>0?3.6*Math.pow(sinAlt,.78):0;
+ sunlight.color.copy(SUN_WARM_LOW).lerp(SUN_WARM_HIGH,c(sinAlt/.65,0,1));
+ // Soft neutral indirect fill follows the season/time; winter days are darker,
+ // dawn/dusk are faint, and 23:00 is dark without inventing interior electric lights.
+ const skyDaylight=c((solar.elevation+7)/65,0,1);
+ const fill=Math.pow(skyDaylight,.72);
+ skyLight.intensity=.035+.91*fill;
+ ambientFill.intensity=.012+.15*fill;
+ scene.background.copy(SUN_BG_NIGHT).lerp(SUN_BG_DAY,c(fill,0,1));
+ const sunsetGlow=c(1-Math.abs(solar.elevation-3)/13,0,1);
+ scene.background.lerp(SUN_BG_DUSK,sunsetGlow*.24);
+ sunlight.target.updateMatrixWorld();
+ sunlight.updateMatrixWorld();
+ sunlight.shadow.needsUpdate=true;
+ return solar;
+}
+function solarDescription(solar){
+ const bearing=((solar.bearing%360)+360)%360;
+ const cardinal=SUN_CARDINALS[Math.round(bearing/22.5)%16];
+ const time=String(solar.hour).padStart(2,'0')+':00';
+ const date=solar.day+' '+SUN_M_NAMES[solar.month-1];
+ const angle=solar.elevation.toFixed(1)+'°';
+ const heading=bearing.toFixed(0)+'° '+cardinal;
+ return solar.elevation>0
+  ? `${date} · ${time} ${solar.zone} · Sun ${heading}, ${angle} above horizon`
+  : `${date} · ${time} ${solar.zone} · Sun below horizon (${angle}) · no direct light`;
+}
+function updateSelectedSun(){
+ const month=Number(sunMonthSelect.value),day=Number(sunDaySelect.value),hour=Number(sunHourSelect.value);
+ solarStudy=applyLondonSun(month,day,hour);
+ $('solar-info').textContent=solarDescription(solarStudy);
+ status('Solar study · '+solarDescription(solarStudy));
+}
+let solarStudy=applyLondonSun(6,21,16); // Keep the former 21 June, 16:00 BST opening light.
+$('solar-info').textContent=solarDescription(solarStudy);
+sunMonthSelect.addEventListener('change',()=>{rebuildSolarDays();updateSelectedSun();});
+sunDaySelect.addEventListener('change',updateSelectedSun);
+sunHourSelect.addEventListener('change',updateSelectedSun);
 
 const rig=new THREE.Group();scene.add(rig);
 const camera=new THREE.PerspectiveCamera(73,innerWidth/innerHeight,.035,90);rig.add(camera);
@@ -584,7 +699,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.24 ready (restored rectangular kitchen and front-entry footprint from v0.15; 2.10 m ceiling, 1.931 m doors, radiator and low fixtures unchanged). Left-stick locomotion now follows headset direction combined with snap-turn rotation.');
+switchMode('plan');status('Shell v0.25 ready · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
