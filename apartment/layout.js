@@ -84,6 +84,7 @@ export const PLAN = {
     // Full-height French doors / glazing to the small bedroom balcony.
     { a:[1141,458],b:[1141,581],name:'Bedroom balcony glazing', mullions:[0.50] }
   ],
+  // v0.31 sofa reduced uniformly by 10%; light thick rug extends in front.
   // v0.30 photographic furniture: position is measured ALONG the long white wall
   // to the RIGHT when looking towards the living-room balcony glazing.
   // The user described ~1 m from the big window, with seats facing towards the kitchen.
@@ -93,12 +94,21 @@ export const PLAN = {
       kind:'chocolate-three-seater',
       wallA:[179,145], wallB:[1141,411],
       fromWindowM:0.90, // gap along white wall between glazing corner and left end of sofa
-      widthM:2.42,
-      depthM:1.00,
+      widthM:2.178, // 2.42m × 90%
+      depthM:0.90,  // 1.00m × 90%
+      scale:0.90,   // scales ALL 3D dimensions, including chrome rails and cushion height
       wallClearanceM:0.08, // back just off white wall and skirting
-      heightM:0.78,
+      heightM:0.702, // 0.78m × 90% (original reference approximation)
       faces:'towards kitchen and centre of reception',
       reference:'supplied front, side, overhead sofa reference + IMG_1059 and IMG_1065 room photos'
+    },
+    receptionRug: {
+      widthM:2.55,
+      depthM:1.90,
+      thicknessM:0.048, // substantial woven carpet, 48 mm total
+      fromWallM:0.16,    // back edge tucked underneath sofa; front projects into room
+      colour:'light warm greige',
+      reference:'thick pale carpet visibly extending in front of sofa, IMG_1065 and IMG_1059'
     }
   },
   // v0.22: coordinates follow the user's RED ANNOTATIONS on the original floor plan.
