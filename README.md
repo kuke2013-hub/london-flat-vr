@@ -83,6 +83,12 @@ The user requested all doors **10 cm shorter than v0.16**, so all door leaves ar
 
 Door leaf height is now **2.031 m**, 50 mm shorter than v0.17. The confirmed ceiling remains **2.10 m**, with a white 69 mm header above the doors. All widths, wall positions, materials, lighting, viewer scale and controls remain unchanged.
 
-## Current geometry — v0.19
+## Previous geometry — v0.19 (superseded by v0.20)
 
 At the user's corrected request (10 cm, not 5 cm), all door leaves are **1.931 m (1931 mm) high**, exactly **100 mm shorter** than v0.18's 2.031 m. The confirmed ceiling height remains **2.10 m**, leaving **169 mm** for each existing opaque white doorway header. Entrance width **1.538 m** and thickness **44 mm**, internal width **0.762 m** and thickness **35 mm**, entrance recess, wall and floor geometry, finishes and lighting, 90%-scale Quest viewer rig, and both working joystick controls remain unchanged.
+
+## Ceiling / wall sunlight seam sealing — v0.20 (current)
+
+The user confirmed that the dimensions and door proportions in v0.19 are acceptable and requested **no direct sunlight leaking through the white ceiling or its connections to opaque walls** before detailed fixtures are added. The confirmed finished ceiling remains exactly **2.10 m** and the door leaf height remains **1.931 m**; all door widths, angles, wall footprints, floors, white finish, window locations, neutral lighting, Quest viewer 90% scale, and verified left/right joystick behaviour are unchanged.
+
+The main roof mesh now has a **mitered exterior-edge expansion** of `PLAN.wallOuter/2 + 0.020 m` (**115 mm** with a 190 mm exterior wall), covering the exterior wall's half-thickness plus a 20 mm exterior margin. The footprint is not modified; the enlarged ceiling exists only at height `PLAN.ceilingHeight`. All full-height solid wall segments and solid white doorway headers overlap the ceiling vertically by **20 mm above the plane**, making a continuous opaque shadow-casting connection even at tapered/concave perimeter corners. Existing window glass remains non-shadow-casting to allow intentional daylight through the real window openings. The directional sun's shadow `normalBias` was tightened from `0.012` to `0.006` to reduce displaced shadows at wall/roof junctions. These changes address **direct-sun seam leaks**, not physically simulate room-occluded ambient/hemisphere bounce lighting. They require visual inspection on Quest 3; do not claim headset verification until tested by the user.
