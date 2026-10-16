@@ -98,9 +98,9 @@ export const PLAN = {
       // Reference photo, seen from the room, left to right: TWO separate warm-white
       // single switches, then one brushed-metal UK double socket nearer the radiator.
       // On the kitchen-top wall, larger alongM is visually farther left.
-      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.540,heightM:1.08,type:'singleSwitch'},
-      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.425,heightM:1.08,type:'singleSwitch'},
-      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.260,heightM:1.08,type:'doubleSocket'}
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.540,heightM:0.20,type:'singleSwitch'},
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.425,heightM:0.20,type:'singleSwitch'},
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.260,heightM:0.20,type:'doubleSocket'}
     ]
   },
   doors: [
@@ -112,5 +112,5 @@ export const PLAN = {
     { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
   ],
-  referenceNotes: 'v0.24 FIXES the broken kitchen/entrance geometry originating in v0.16 (oversize 1538 mm front door shifted the kitchen corner). The kitchen/entrance exterior footprint, room polygons, wall segments and entrance door positions are EXACTLY restored from v0.15, the last intact rectangular kitchen baseline. Door leaf height remains the v0.19 agreed 1931 mm, ceiling remains 2100 mm. Entrance is 1038 mm wide to fit the restored opening. The original radiator remains at x250 beside the reception window; two separate warm-white switches and a brushed-metal double socket are grouped at 1.08m on the kitchen-facing wall, as in the supplied reference photo. Thin skirting is unchanged. All measurements remain provisional.'
+  referenceNotes: 'v0.24 FIXES the broken kitchen/entrance geometry originating in v0.16 (oversize 1538 mm front door shifted the kitchen corner). The kitchen/entrance exterior footprint, room polygons, wall segments and entrance door positions are EXACTLY restored from v0.15, the last intact rectangular kitchen baseline. Door leaf height remains the v0.19 agreed 1931 mm, ceiling remains 2100 mm. Entrance is 1038 mm wide to fit the restored opening. The original radiator remains at x250 beside the reception window; two separate warm-white switches and a brushed-metal double socket are grouped with centres 0.20m above the floor, just above skirting, on the kitchen-facing wall, as in the supplied reference photo. Thin skirting is unchanged. All measurements remain provisional.'
 };
