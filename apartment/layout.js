@@ -84,19 +84,19 @@ export const PLAN = {
     // Full-height French doors / glazing to the small bedroom balcony.
     { a:[1141,458],b:[1141,581],name:'Bedroom balcony glazing', mullions:[0.50] }
   ],
-  // v0.22 ONLY: provisional photo-based fixtures on the LEFT of the big reception
-  // balcony window when facing it from inside (by the kitchen-side return).
-  // These are decoration coordinates; no walls, doors, windows or floors are changed.
+  // v0.22: coordinates follow the user's RED ANNOTATIONS on the original floor plan.
+  // Facing the big window from inside: radiator on short vertical wall x=250, y=460..568
+  // (its living-room face); switch/socket plates on the horizontal kitchen-top wall y=568.
   fixtures: {
     skirtingHeightM: 0.110,
     receptionRadiator: {
-      wallA:[179,460], wallB:[250,460], // short wall immediately LEFT of the reception glazing
-      interiorPoint:[380,385],           // selects the reception-facing side of the wall
-      widthM:0.64, heightM:0.66, bottomM:0.18
+      wallA:[250,460], wallB:[250,568],
+      interiorPoint:[375,510], // east-facing surface, INSIDE reception, NOT the far/right wall
+      centerAlongM:0.65, widthM:0.81, heightM:0.65, bottomM:0.19
     },
     receptionPlates: [
-      {wallA:[250,460],wallB:[250,568],interiorPoint:[380,515],alongM:0.34,heightM:1.20,type:'switchBank'},
-      {wallA:[250,460],wallB:[250,568],interiorPoint:[380,515],alongM:0.82,heightM:0.35,type:'doubleSocket'}
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.21,heightM:0.92,type:'switchBank'},
+      {wallA:[250,568],wallB:[310,568],interiorPoint:[375,515],alongM:0.49,heightM:0.92,type:'doubleSocket'}
     ]
   },
   doors: [
