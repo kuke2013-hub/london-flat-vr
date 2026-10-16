@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#181f23">
-<title>London Flat VR · Architectural Shell v0.1</title>
+<title>London Flat VR · Architectural Shell v0.2</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#b9c8d0}
@@ -16,14 +16,14 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.1</span></h1>
- <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. No furniture or outside scenery yet.</div>
+ <h1>London Flat VR <span style="font-weight:400;color:#9ac3bc">/ shell v0.2</span></h1>
+ <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Provisional June afternoon daylight added; no furniture or outside scenery yet.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
  <div id="status">Preparing Three.js and Rapier…</div>
- <div id="data"><strong>Finishes:</strong> pale wood / cream bedroom carpet / grey kitchen floor / light brown doors.<br><strong>Provisional:</strong> 2.50 m ceiling, framing, thicknesses and door swings.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+ <div id="data"><strong>Finishes:</strong> pale wood / cream bedroom carpet / grey kitchen floor / light brown doors.<br><strong>Provisional:</strong> 2.50 m ceiling, framing, thicknesses, door swings and sun study.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
-<div id="footer">Doors and glazing positions traced from the drawing; dimensions are preliminary until checked against photographs.</div>
+<div id="footer">Doors, glazing and sunlight direction are traced from the plan and your notes; dimensions and sun study remain provisional until checked against photographs and VR viewing.</div>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -44,12 +44,35 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.28;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.45));
 renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.xr.enabled=true;
 renderer.xr.setReferenceSpaceType('local-floor');
 renderer.xr.setFramebufferScaleFactor(1);
 $('stage').appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0xaab4b6,2.2));
-const sunlight=new THREE.DirectionalLight(0xfff3dd,2.0);sunlight.position.set(-5,9,-3);scene.add(sunlight);
+const skyLight = new THREE.HemisphereLight(0xf6fbff,0x9b927d,1.75);scene.add(skyLight);
+const ambientFill = new THREE.AmbientLight(0xf2efe6,0.35);scene.add(ambientFill);
+// Approximate London summer sun, around 15:00. The plan's north arrow implies the reception glazing is the west-facing side,
+// so the stronger sun comes from the balcony/reception side and grazes across the timber floor into the flat.
+const sunlight=new THREE.DirectionalLight(0xffefd2,2.65);
+sunlight.position.set(-9.5,8.2,5.2);
+sunlight.castShadow = true;
+sunlight.shadow.mapSize.set(1024,1024);
+sunlight.shadow.bias = -0.00018;
+sunlight.shadow.normalBias = 0.02;
+sunlight.shadow.camera.near = 0.5;
+sunlight.shadow.camera.far = 28;
+sunlight.shadow.camera.left = -8;
+sunlight.shadow.camera.right = 8;
+sunlight.shadow.camera.top = 7;
+sunlight.shadow.camera.bottom = -7;
+sunlight.target.position.set(1.0,0,-0.3);
+scene.add(sunlight.target);
+scene.add(sunlight);
+const floorBounce = new THREE.PointLight(0xffddb0,0.75,8.5,2.2);
+floorBounce.position.set(-2.2,0.95,-0.1);scene.add(floorBounce);
+const skyBounce = new THREE.PointLight(0xd9eef9,0.30,10,2.0);
+skyBounce.position.set(3.0,2.4,0.35);scene.add(skyBounce);
 
 const rig=new THREE.Group();scene.add(rig);
 const camera=new THREE.PerspectiveCamera(73,innerWidth/innerHeight,.035,90);rig.add(camera);
@@ -105,10 +128,10 @@ function floorGeometry(points){
  const s=new THREE.Shape();points.forEach((p,i)=>{const v=m(p);if(!i)s.moveTo(v.x,-v.y);else s.lineTo(v.x,-v.y);});s.closePath();
  const geo=new THREE.ShapeGeometry(s);geo.rotateX(-Math.PI/2);return geo;
 }
-const base=new THREE.Mesh(floorGeometry(PLAN.outline),darkBase);base.position.y=-.015;architectural.add(base);
+const base=new THREE.Mesh(floorGeometry(PLAN.outline),darkBase);base.position.y=-.015;base.receiveShadow=true;architectural.add(base);
 for(const room of PLAN.rooms){
  const mesh=new THREE.Mesh(floorGeometry(room.points),floorMats[room.finish]);mesh.position.y=.003;
- mesh.userData.roomId=room.id;architectural.add(mesh);
+ mesh.receiveShadow=true;mesh.userData.roomId=room.id;architectural.add(mesh);
 }
 function labelForRoom(room){
  const c=document.createElement('canvas');c.width=512;c.height=164;const x=c.getContext('2d');
@@ -146,7 +169,7 @@ function windowPane(spec){
  const a=m(spec.a),b=m(spec.b);const len=a.distanceTo(b);const mid=a.clone().add(b).multiplyScalar(.5);
  const rot=-Math.atan2(b.y-a.y,b.x-a.x);
  const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
- glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;architectural.add(glass);
+ glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;glass.receiveShadow=false;architectural.add(glass);
  // Clear glazing still collides: outside balconies are deliberately not built yet.
  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
  world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,H/2,.028).setTranslation(mid.x,H/2,mid.y).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}),staticBody);
@@ -155,12 +178,12 @@ function windowPane(spec){
  for(const t of [0,...spec.mullions,1]){
   const x=a.x+(b.x-a.x)*t,z=a.y+(b.y-a.y)*t;
   const bar=new THREE.Mesh(new THREE.BoxGeometry(.044,H,.044),frameMat);
-  bar.position.set(x,H/2,z);architectural.add(bar);
+  bar.position.set(x,H/2,z);bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
  }
  for(const y of [.025,H-.025])beam(spec.a,spec.b,y-.025,.05);
  // Small discreet door handles at eye / waist level, not a speculative detailed door style.
  const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#b3b5b4',metalness:.75,roughness:.3}));
- handle.position.set(mid.x,1.02,mid.y);architectural.add(handle);
+ handle.position.set(mid.x,1.02,mid.y);handle.castShadow=true;architectural.add(handle);
 }
 PLAN.glazing.forEach(windowPane);
 function doorPanel(s){
@@ -169,11 +192,11 @@ function doorPanel(s){
  const length=dir.length(),dest=new THREE.Vector2(Math.cos(theta),Math.sin(theta)).multiplyScalar(length);
  const center=hinge.clone().addScaledVector(dest,.5);
  const mesh=new THREE.Mesh(new THREE.BoxGeometry(length,H-.34,.038),doorMat);
- mesh.position.set(center.x,(H-.34)/2,center.y);mesh.rotation.y=-theta;architectural.add(mesh);
+ mesh.position.set(center.x,(H-.34)/2,center.y);mesh.rotation.y=-theta;mesh.castShadow=true;mesh.receiveShadow=true;architectural.add(mesh);
  // A flat frame above every interior opening, and simple hinges/handle on the slab.
  const sillH=.12;beam(s.a,s.b,H-.19,sillH,.085);
  const handle=new THREE.Mesh(new THREE.SphereGeometry(.032,8,6),new THREE.MeshStandardMaterial({color:'#a8a198',metalness:.42,roughness:.42}));
- handle.position.set(hinge.x+dest.x*.85,1.0,hinge.y+dest.y*.85);architectural.add(handle);
+ handle.position.set(hinge.x+dest.x*.85,1.0,hinge.y+dest.y*.85);handle.castShadow=true;architectural.add(handle);
  if(!s.open){
   world.createCollider(RAPIER.ColliderDesc.cuboid(length/2,(H-.34)/2,.04).setTranslation(center.x,(H-.34)/2,center.y).setRotation({x:0,y:Math.sin(-theta/2),z:0,w:Math.cos(-theta/2)}),staticBody);
   collisionSegment(s.a,s.b,.08);
@@ -181,7 +204,7 @@ function doorPanel(s){
 }
 PLAN.doors.forEach(doorPanel);
 const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#f7f7f3',side:THREE.DoubleSide,roughness:1}));
-ceiling.position.y=H;roof.add(ceiling);
+ceiling.position.y=H;ceiling.receiveShadow=true;roof.add(ceiling);
 // Minimal vertical cutaway outline helper in overhead view. Not furniture or exterior scenery.
 const spawn=m(PLAN.spawn);
 const marker=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.012,24),new THREE.MeshBasicMaterial({color:'#168d85'}));
@@ -288,7 +311,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell ready. Enter Quest VR or select Walk inside. Geometry and ceiling height are provisional.');
+switchMode('plan');status('Shell ready. Enter Quest VR or select Walk inside. Approximate June afternoon daylight has been added; geometry and sun study remain provisional.');
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
