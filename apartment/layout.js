@@ -80,22 +80,24 @@ export const PLAN = {
   ],
   glazing: [
     // Full-height glazed wall to reception balcony. The balcony itself is not yet modelled.
-    { a:[179,145],b:[179,460],name:'Reception balcony glazing', mullions:[0.29,0.53,0.76], doorSection:1, lowerPanelM:0.24 }, // photo-inspired four-part facade; one outward balcony door
+    { a:[179,145],b:[179,460],name:'Reception balcony glazing', mullions:[0.50,0.74] },
     // Full-height French doors / glazing to the small bedroom balcony.
     { a:[1141,458],b:[1141,581],name:'Bedroom balcony glazing', mullions:[0.50] }
   ],
-  // Approximate fixture anchors from the user's living-room photos. Refine their offsets as more views arrive.
+  // v0.22 ONLY: provisional photo-based fixtures on the LEFT of the big reception
+  // balcony window when facing it from inside (by the kitchen-side return).
+  // These are decoration coordinates; no walls, doors, windows or floors are changed.
   fixtures: {
+    skirtingHeightM: 0.110,
     receptionRadiator: {
-      wallA:[179,145], wallB:[1141,411],
-      startM:0.30, widthM:0.82, bottomM:0.19, heightM:0.68,
-      note:'White horizontal flat-panel radiator, on the wall immediately beside the reception glazing'
+      wallA:[179,460], wallB:[250,460], // short wall immediately LEFT of the reception glazing
+      interiorPoint:[380,385],           // selects the reception-facing side of the wall
+      widthM:0.64, heightM:0.66, bottomM:0.18
     },
     receptionPlates: [
-      {wallA:[179,145],wallB:[1141,411],alongM:1.44,heightM:0.36,type:'doubleSocket'},
-      {wallA:[179,145],wallB:[1141,411],alongM:1.56,heightM:1.26,type:'switches'}
-    ],
-    kitchenThreshold: {a:[310,568],b:[436,568]}
+      {wallA:[250,460],wallB:[250,568],interiorPoint:[380,515],alongM:0.34,heightM:1.20,type:'switchBank'},
+      {wallA:[250,460],wallB:[250,568],interiorPoint:[380,515],alongM:0.82,heightM:0.35,type:'doubleSocket'}
+    ]
   },
   doors: [
     // Standard-sized model leaves. These openings were adjusted to fit the leaf widths.
@@ -107,5 +109,5 @@ export const PLAN = {
     { id:'bath',name:'Bathroom door',kind:'internal',a:[BATHROOM_RIGHT_X,569],b:[685,569],open:true,swing:1.45 },
     { id:'bed',name:'Bedroom door',kind:'internal',a:[778,BEDROOM_BOTTOM_Y],b:[778,BEDROOM_TOP_Y],open:true,swing:1.12 }
   ],
-  referenceNotes: 'v0.21 added photo-inspired reception radiator, UK switch and socket plates, white skirting, four-pane glazed balcony wall, warm timber texture, grey kitchen tile threshold; fixture positions and exact opening divisions are provisional. Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. CONFIRMED virtual ceiling 2.10 m unchanged. Door leaves set to 1931 mm (100 mm shorter than v0.18), sitting 169 mm beneath the unchanged 2.10 m ceiling. Entrance widened another 500 mm to custom 1538 mm / 44 mm thick; lower hall recess and kitchen corner were adjusted. Internal leaves remain 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
+  referenceNotes: 'Source plan shows irregular angled upper wall, 52.58 m² GIA, reception and bedroom balcony exits. CONFIRMED virtual ceiling 2.10 m unchanged. Door leaves set to 1931 mm (100 mm shorter than v0.18), sitting 169 mm beneath the unchanged 2.10 m ceiling. Entrance widened another 500 mm to custom 1538 mm / 44 mm thick; lower hall recess and kitchen corner were adjusted. Internal leaves remain 762 mm wide / 35 mm thick. Reception double doors have two 762 mm leaves. Door openings repositioned to match. Actual framing, fire-rating and clear opening are unverified.'
 };
