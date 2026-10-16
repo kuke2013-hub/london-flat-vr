@@ -93,7 +93,7 @@ export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
     obj.name=name;obj.castShadow=true;obj.receiveShadow=true;sofa.add(obj);
   }
   for(const side of [-1,1]){
-    const x=side*(width/2-.012);
+    const x=side*(width/2+.015); // Chrome hoop remains visible OUTSIDE upholstery.
     rail(side<0?'Left chrome arm outline':'Right chrome arm outline',[
       [x,.110,-depth/2+.10],[x,.100,-depth/2+.060],
       [x,.52,-depth/2+.060],[x,.555,-depth/2+.030],
