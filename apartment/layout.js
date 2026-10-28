@@ -105,7 +105,7 @@ export const PLAN = {
     receptionRug: {
       widthM:2.55,
       depthM:1.90,
-      thicknessM:0.048, // substantial woven carpet, 48 mm total
+      thicknessM:0.020, // substantial woven carpet, 20 mm total
       fromWallM:0.16,    // back edge tucked underneath sofa; front projects into room
       colour:'light warm greige',
       reference:'thick pale carpet visibly extending in front of sofa, IMG_1065 and IMG_1059'
@@ -141,3 +141,4 @@ export const PLAN = {
   ],
   referenceNotes: 'v0.24 FIXES the broken kitchen/entrance geometry originating in v0.16 (oversize 1538 mm front door shifted the kitchen corner). The kitchen/entrance exterior footprint, room polygons, wall segments and entrance door positions are EXACTLY restored from v0.15, the last intact rectangular kitchen baseline. Door leaf height remains the v0.19 agreed 1931 mm, ceiling remains 2100 mm. Entrance is 1038 mm wide to fit the restored opening. The original radiator remains at x250 beside the reception window; two separate warm-white switches and a brushed-metal double socket are grouped with centres 0.40m above the floor, 20cm higher than v0.27, on the kitchen-facing wall, as in the supplied reference photo. Thin skirting is unchanged. All measurements remain provisional.'
 };
+

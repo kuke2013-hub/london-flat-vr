@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#27211c">
-<title>London Flat VR · Architectural Shell v0.32</title>
+<title>London Flat VR · Architectural Shell v0.33</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
@@ -26,8 +26,8 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.32</span></h1>
- <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, thick pale rug and four-part balcony glazing.</div>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.33</span></h1>
+ <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, 20 mm pale rug and four-part balcony glazing.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
  <div id="solar-panel">
   <label style="display:block;margin-bottom:8px">Lighting <select id="lighting-mode"><option value="baked">Baked · 22 June, 16:00 BST</option><option value="live">Live seasonal sunlight</option></select></label><div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
@@ -244,8 +244,8 @@ const fixtureDecor=new THREE.Group();fixtureDecor.name='Reception fixtures';fixt
 const labels=new THREE.Group();scene.add(labels);
 const roof=new THREE.Group();scene.add(roof);
 const ALL_SOLIDS=[];
-const solidMat=new THREE.MeshStandardMaterial({color:'#faf9f7',roughness:.94,metalness:0});
-const edgeMat=new THREE.MeshStandardMaterial({color:'#faf9f7',roughness:1});
+const solidMat=new THREE.MeshStandardMaterial({color:'#eaeaea',roughness:.94,metalness:0});
+const edgeMat=new THREE.MeshStandardMaterial({color:'#eaeaea',roughness:1});
 const doorMat=new THREE.MeshStandardMaterial({color:'#caa980',roughness:.82});
 const frameMat=new THREE.MeshStandardMaterial({color:'#f0efec',roughness:.44,metalness:.12});
 const glassMat=new THREE.MeshPhysicalMaterial({color:'#faf9f6',transparent:true,opacity:.20,metalness:0,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
@@ -294,11 +294,12 @@ function floorGeometry(points){
  const s=new THREE.Shape();points.forEach((p,i)=>{const v=m(p);if(!i)s.moveTo(v.x,-v.y);else s.lineTo(v.x,-v.y);});s.closePath();
  const geo=new THREE.ShapeGeometry(s);geo.rotateX(-Math.PI/2);return geo;
 }
-const base=new THREE.Mesh(floorGeometry(PLAN.outline),darkBase);base.position.y=-.015;base.receiveShadow=true;architectural.add(base);
+const base=new THREE.Mesh(floorGeometry(PLAN.outline),floorMats.wood);base.position.y=.002;base.receiveShadow=true;architectural.add(base);
 for(const room of PLAN.rooms){
  const mesh=new THREE.Mesh(floorGeometry(room.points),floorMats[room.finish]);mesh.position.y=.003;
  mesh.receiveShadow=true;mesh.userData.roomId=room.id;architectural.add(mesh);
 }
+const threshold=new THREE.Mesh(floorGeometry([[497.6919,567],[627.3081,567],[627.3081,569],[497.6919,569]]),floorMats.wood);threshold.position.y=.003;architectural.add(threshold);
 function labelForRoom(room){
  const c=document.createElement('canvas');c.width=512;c.height=164;const x=c.getContext('2d');
  x.fillStyle='rgba(252,251,246,.82)';x.beginPath();x.roundRect(3,3,506,158,22);x.fill();
@@ -371,7 +372,7 @@ for(const w of PLAN.walls) rectangularWall(w.a,w.b,H,w.kind==='outer'?PLAN.wallO
  }
  bodies.instanceMatrix.needsUpdate=true;
  caps.instanceMatrix.needsUpdate=true;
- skirtingDecor.add(bodies,caps);
+ skirtingDecor.add(bodies);
 }
 function beam(a,b,y,height,thick=.044){rectangularWall(a,b,height,thick,frameMat,y+height/2,false);}
 function windowPane(spec){
@@ -538,7 +539,7 @@ for(const plate of PLAN.fixtures?.receptionPlates||[]){
  }
 }
 function doorPanel(s){
- const hinge=m(s.a),end=m(s.b);const dir=end.clone().sub(hinge);let theta=Math.atan2(dir.y,dir.x);
+ const hinge=m(s.a),end=m(s.b);if(s.id==='living-left'){hinge.x+=.06;end.x+=.06;}if(s.id==='living-right'){hinge.x-=.06;end.x-=.06;}const dir=end.clone().sub(hinge);let theta=Math.atan2(dir.y,dir.x);
  if(s.open)theta+=s.swing||0;
  const length=dir.length(),dest=new THREE.Vector2(Math.cos(theta),Math.sin(theta)).multiplyScalar(length);
  const center=hinge.clone().addScaledVector(dest,.5);
@@ -560,7 +561,7 @@ function doorPanel(s){
  }
 }
 PLAN.doors.forEach(doorPanel);
-const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#fbfaf8',side:THREE.DoubleSide,roughness:1}));
+const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#eaeaea',side:THREE.DoubleSide,roughness:1}));
 ceiling.position.y=H;
 // CRITICAL: the ceiling must CAST shadows, not just receive them. Without this,
 // afternoon sunlight enters from above and reaches the bedroom despite opaque
@@ -576,7 +577,7 @@ function setCeilingVisibleInCamera(show){
  skirtingDecor.visible=show;
  fixtureDecor.visible=show;
 }
-// v0.32: Blender baked appearance; original architecture still supplies collisions.
+// v0.33: Blender baked appearance; original architecture still supplies collisions.
 const bakedRoot=new THREE.Group();bakedRoot.name='Blender baked apartment';scene.add(bakedRoot);
 let bakedRoof=null, bakedReady=false, lightingMode='baked';
 function applyBakedVisibility(){
@@ -598,8 +599,8 @@ async function loadBakedApartment(){
  try{
   status('Loading baked apartment…');
   const [data,texture]=await Promise.all([
-   fetch('./apartment/baked/geometry.json?v=032').then(r=>{if(!r.ok)throw new Error('Geometry download failed');return r.json();}),
-   new THREE.TextureLoader().loadAsync('./apartment/baked/lighting.jpg?v=032')
+   fetch('./apartment/baked/geometry.json?v=033').then(r=>{if(!r.ok)throw new Error('Geometry download failed');return r.json();}),
+   new THREE.TextureLoader().loadAsync('./apartment/baked/lighting.png?v=033')
   ]);
   texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
   const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,toneMapped:false});
@@ -811,7 +812,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.32 ready · 10% smaller warm-grey sofa with polished chrome and a thick pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.33 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 loadBakedApartment();
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;

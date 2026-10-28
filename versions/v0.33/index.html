@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#27211c">
+<title>London Flat VR · Architectural Shell v0.33</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
+canvas{display:block}#stage{position:fixed;inset:0}#ui{position:fixed;top:14px;left:14px;width:min(360px,calc(100vw - 28px));background:rgba(36,29,24,.88);color:#f2f3f1;border:1px solid #ffffff30;border-radius:13px;padding:14px 16px;z-index:5;backdrop-filter:blur(10px);box-shadow:0 10px 28px #0003}
+h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{font-size:11px;line-height:1.45;color:#e4d8c9;margin-bottom:9px}#controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}button,select{background:#473d33;border:1px solid #ffffff35;border-radius:8px;padding:8px 9px;color:#fafafa;font-size:12px;cursor:pointer}button.active{background:#806448;border-color:#e4c18d}button:hover{background:#685340}#vr-slot button{background:#efcc96!important;color:#302116!important;border:0!important;font-weight:700!important}#status{font-size:11px;margin-top:9px;color:#e2cdb6;line-height:1.5}#data{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff25;color:#e2d6c8;font-size:11px;line-height:1.5}#data strong{font-weight:650;color:#fff}#footer{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px);z-index:3;padding:8px 12px;border-radius:8px;background:#221b17ce;color:#f6f6f6;text-align:center;font-size:11px;line-height:1.4;pointer-events:none}#footnotes{position:fixed;top:15px;right:15px;z-index:3;background:#251d18b8;color:#faf3e8;border-radius:9px;padding:9px 11px;font:11px/1.6 ui-monospace,SFMono-Regular,monospace}#footnotes span{color:#edc893}@media(max-width:650px){#ui{padding:10px 11px;width:calc(100vw - 20px);top:10px;left:10px}#footnotes{top:auto;right:10px;bottom:65px}#footer{bottom:7px}}
+/* v0.25 seasonal solar calendar: small controls remain usable before starting Quest VR. */
+#solar-panel{margin-top:10px;padding-top:9px;border-top:1px solid #ffffff25}
+#solar-panel-title{font-size:10px;letter-spacing:.075em;color:#e8dccc;font-weight:650;margin-bottom:7px}
+#solar-controls{display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap}
+#solar-controls label{display:flex;flex-direction:column;gap:3px;font-size:10px;color:#e2d6c8}
+#solar-controls label:first-child{flex:1 1 108px}
+#solar-controls label:nth-child(2){flex:0 0 58px}
+#solar-controls label:nth-child(3){flex:0 0 91px}
+#solar-controls select{width:100%;min-width:0;padding:7px 5px;font-size:12px;background:#42362c}
+#solar-info{margin-top:7px;font-size:11px;line-height:1.5;color:#dcd3bd;min-height:31px;font-variant-numeric:tabular-nums}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="ui">
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.33</span></h1>
+ <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, 20 mm pale rug and four-part balcony glazing.</div>
+ <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
+ <div id="solar-panel">
+  <label style="display:block;margin-bottom:8px">Lighting <select id="lighting-mode"><option value="baked">Baked · 22 June, 16:00 BST</option><option value="live">Live seasonal sunlight</option></select></label><div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
+  <div id="solar-controls" role="group" aria-label="Choose the date and time for the sun">
+   <label for="sun-month">Month<select id="sun-month" aria-label="Solar month">
+    <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6" selected>June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+   </select></label>
+   <label for="sun-day">Day<select id="sun-day" aria-label="Day of the month"></select></label>
+   <label for="sun-hour">Hour<select id="sun-hour" aria-label="Local London hour between 06:00 and 23:00"></select></label>
+  </div>
+  <div id="solar-info" aria-live="polite">Calculating the seasonal sun…</div>
+ </div>
+ <div id="status">Preparing baked apartment…</div>
+ <div id="data"><strong>Finishes:</strong> near-white walls and ceiling with a very subtle warm bias / neutral clear glass / pale wood / cream bedroom carpet / grey kitchen floor. <strong>Fixtures:</strong> radiator beside the balcony window, two cream switches and a brushed-metal double socket by the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. Baked lighting: 22 June 2026, 16:00 BST. Switch to live lighting for seasonal controls; compass orientation is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+</div>
+<div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
+<div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.21.0/dist/rapier.mjs';
+import { PLAN } from './apartment/layout.js';
+import { createSofa, createSofaRug } from './apartment/sofa.js';
+
+const $ = id => document.getElementById(id);
+const status = s => { $('status').textContent=s; };
+const scale = 1 / PLAN.pxPerMetre;
+const m = p => new THREE.Vector2((p[0] - PLAN.centre[0])*scale, (p[1] - PLAN.centre[1])*scale);
+const H = PLAN.ceilingHeight;
+const DOOR_H = PLAN.doorHeight; // 1.931 m doors; 10 cm shorter than v0.18, independent of ceiling.
+if(DOOR_H<=0||H<=0)throw new Error('Door and ceiling heights must be positive.');
+const DOOR_CEILING_OVERLAP = Math.max(0,DOOR_H-H); // Zero in v0.19; door leaves end 169 mm below ceiling.
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#e9e8e5'); // Almost-neutral light background, with only a tiny warm bias.
+const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', alpha:false });
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.24;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.45));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap; // Sharper window-frame shadows, less expensive than soft PCF.
+renderer.xr.enabled=true;
+renderer.xr.setReferenceSpaceType('local-floor');
+renderer.xr.setFramebufferScaleFactor(1);
+$('stage').appendChild(renderer.domElement);
+// Keep diffuse daylight subordinate to the sun so the frame shadows remain visible.
+// Neutral diffuse lighting: the former blue-tinted hemisphere made pure-white walls appear cyan.
+const skyLight = new THREE.HemisphereLight(0xfffefa,0xe6e5e1,0.95);scene.add(skyLight);
+const ambientFill = new THREE.AmbientLight(0xfffefa,0.16);scene.add(ambientFill);
+const sunlight = new THREE.DirectionalLight(0xffedca,3.2);
+sunlight.castShadow = true;
+sunlight.shadow.mapSize.set(2048,2048); // Reduced to 1024 during a Quest session.
+sunlight.shadow.bias = -0.00012;
+sunlight.shadow.normalBias = 0.012;
+sunlight.shadow.camera.near = 1;
+sunlight.shadow.camera.far = 42;
+sunlight.shadow.camera.left = -8.5;
+sunlight.shadow.camera.right = 8.5;
+sunlight.shadow.camera.top = 8.5;
+sunlight.shadow.camera.bottom = -8.5;
+sunlight.target.position.set(0,0.5,0);
+scene.add(sunlight.target,sunlight);
+// The previous shadowless point-light "bounces" illuminated other rooms through
+// opaque walls. Use only subdued hemisphere/ambient fill, which represents
+// diffuse indirect daylight without producing a false direct light patch.
+// We can add baked, room-local reflected light after the architecture is measured.
+
+// Solar positions for Clephane Road, Islington: approximate coordinates 51.54 N, 0.11 W.
+// Equations: NOAA fractional-year, equation-of-time and declination model. Azimuth from TRUE north,
+// measured clockwise; the estate-agent plan's compass arrow (north ~= +X,-Z) is approximate.
+// Selected hours are local UK clock time, using GMT in winter and BST in summer.
+// 2026 is the simulation calendar year; all twelve months and valid dates are selectable.
+const SUN_YEAR=2026;
+const SUN_LAT_RAD=THREE.MathUtils.degToRad(51.54);
+const SUN_LONGITUDE=-0.11;
+const SUN_NORTH_X=.58,SUN_NORTH_Z=-Math.sqrt(1-.58**2);
+const SUN_EAST_X=-SUN_NORTH_Z,SUN_EAST_Z=SUN_NORTH_X;
+const SUN_M_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SUN_CARDINALS=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+const SUN_WARM_LOW=new THREE.Color('#ffbd82');
+const SUN_WARM_HIGH=new THREE.Color('#fff5e5');
+const SUN_BG_DAY=new THREE.Color('#e9e8e5');
+const SUN_BG_DUSK=new THREE.Color('#a7a29b');
+const SUN_BG_NIGHT=new THREE.Color('#1c1b19');
+const sunMonthSelect=$('sun-month'),sunDaySelect=$('sun-day'),sunHourSelect=$('sun-hour');
+
+function daysInSolarMonth(month){return new Date(Date.UTC(SUN_YEAR,month,0)).getUTCDate();}
+function lastSundayOfSolarMonth(month){
+ const last=new Date(Date.UTC(SUN_YEAR,month,0));
+ return last.getUTCDate()-last.getUTCDay();
+}
+function isBSTDate(month,day){
+ // UK changes clocks on the last Sundays of March and October.
+ // All selectable hours are 06:00-23:00, safely beyond the 01:00/02:00 changeover.
+ if(month>3&&month<10)return true;
+ if(month===3)return day>=lastSundayOfSolarMonth(3);
+ if(month===10)return day<lastSundayOfSolarMonth(10);
+ return false;
+}
+function rebuildSolarDays(){
+ const month=Number(sunMonthSelect.value);
+ const preferred=Number(sunDaySelect.value)||21;
+ const maximum=daysInSolarMonth(month);
+ sunDaySelect.replaceChildren();
+ for(let day=1;day<=maximum;day++)sunDaySelect.add(new Option(String(day),String(day)));
+ sunDaySelect.value=String(Math.min(preferred,maximum));
+}
+for(let hour=6;hour<=23;hour++){
+ const label=String(hour).padStart(2,'0')+':00';
+ sunHourSelect.add(new Option(label,String(hour)));
+}
+sunHourSelect.value='16';
+rebuildSolarDays();
+sunDaySelect.value='22';
+
+function calculateLondonSun(month,day,localHour){
+ if(month<1||month>12||day<1||day>daysInSolarMonth(month)||localHour<6||localHour>23)
+  throw new RangeError('Requested solar date or hour is out of bounds');
+ const offset=isBSTDate(month,day)?1:0;
+ // Date.UTC is timezone-independent even if the viewer uses a different device timezone.
+ const instant=new Date(Date.UTC(SUN_YEAR,month-1,day,localHour-offset));
+ const doy=1+Math.floor((Date.UTC(instant.getUTCFullYear(),instant.getUTCMonth(),instant.getUTCDate())-Date.UTC(instant.getUTCFullYear(),0,1))/86400000);
+ const yearDays=(SUN_YEAR%4===0&&(SUN_YEAR%100!==0||SUN_YEAR%400===0))?366:365;
+ const utcHours=instant.getUTCHours()+instant.getUTCMinutes()/60;
+ const gamma=2*Math.PI/yearDays*(doy-1+(utcHours-12)/24);
+ const eqMinutes=229.18*(.000075+.001868*Math.cos(gamma)-.032077*Math.sin(gamma)
+  -.014615*Math.cos(2*gamma)-.040849*Math.sin(2*gamma));
+ const decl=.006918-.399912*Math.cos(gamma)+.070257*Math.sin(gamma)
+  -.006758*Math.cos(2*gamma)+.000907*Math.sin(2*gamma)
+  -.002697*Math.cos(3*gamma)+.00148*Math.sin(3*gamma);
+ const ha=THREE.MathUtils.degToRad((utcHours*60+eqMinutes+4*SUN_LONGITUDE)/4-180);
+ const sinAlt=Math.sin(SUN_LAT_RAD)*Math.sin(decl)+Math.cos(SUN_LAT_RAD)*Math.cos(decl)*Math.cos(ha);
+ const altitude=Math.asin(THREE.MathUtils.clamp(sinAlt,-1,1));
+ const azimuth=(Math.atan2(Math.sin(ha),Math.cos(ha)*Math.sin(SUN_LAT_RAD)-Math.tan(decl)*Math.cos(SUN_LAT_RAD))+3*Math.PI)%(2*Math.PI);
+ return {month,day,hour:localHour,zone:offset?'BST':'GMT',altitude,azimuth,
+  elevation:THREE.MathUtils.radToDeg(altitude),bearing:THREE.MathUtils.radToDeg(azimuth)};
+}
+function applyLondonSun(month,day,hour){
+ const solar=calculateLondonSun(month,day,hour);
+ const sinAlt=Math.max(0,Math.sin(solar.altitude));
+ const c=THREE.MathUtils.clamp;
+ // Real astronomical sun direction; its visible light disappears below the horizon.
+ const east=Math.sin(solar.azimuth),north=Math.cos(solar.azimuth);
+ const horizontalX=east*SUN_EAST_X+north*SUN_NORTH_X;
+ const horizontalZ=east*SUN_EAST_Z+north*SUN_NORTH_Z;
+ const distance=18;
+ sunlight.position.set(sunlight.target.position.x+distance*Math.cos(solar.altitude)*horizontalX,
+  sunlight.target.position.y+distance*Math.sin(solar.altitude),
+  sunlight.target.position.z+distance*Math.cos(solar.altitude)*horizontalZ);
+ sunlight.visible=solar.elevation>0;
+ sunlight.intensity=solar.elevation>0?3.6*Math.pow(sinAlt,.78):0;
+ sunlight.color.copy(SUN_WARM_LOW).lerp(SUN_WARM_HIGH,c(sinAlt/.65,0,1));
+ // Soft neutral indirect fill follows the season/time; winter days are darker,
+ // dawn/dusk are faint, and 23:00 is dark without inventing interior electric lights.
+ const skyDaylight=c((solar.elevation+7)/65,0,1);
+ const fill=Math.pow(skyDaylight,.72);
+ skyLight.intensity=.035+.91*fill;
+ ambientFill.intensity=.012+.15*fill;
+ scene.background.set('#ffffff');
+ const sunsetGlow=c(1-Math.abs(solar.elevation-3)/13,0,1);
+ 
+ sunlight.target.updateMatrixWorld();
+ sunlight.updateMatrixWorld();
+ sunlight.shadow.needsUpdate=true;
+ return solar;
+}
+function solarDescription(solar){
+ const bearing=((solar.bearing%360)+360)%360;
+ const cardinal=SUN_CARDINALS[Math.round(bearing/22.5)%16];
+ const time=String(solar.hour).padStart(2,'0')+':00';
+ const date=solar.day+' '+SUN_M_NAMES[solar.month-1];
+ const angle=solar.elevation.toFixed(1)+'°';
+ const heading=bearing.toFixed(0)+'° '+cardinal;
+ return solar.elevation>0
+  ? `${date} · ${time} ${solar.zone} · Sun ${heading}, ${angle} above horizon`
+  : `${date} · ${time} ${solar.zone} · Sun below horizon (${angle}) · no direct light`;
+}
+function updateSelectedSun(){
+ if(typeof setLightingMode==='function')setLightingMode('live');
+ const month=Number(sunMonthSelect.value),day=Number(sunDaySelect.value),hour=Number(sunHourSelect.value);
+ solarStudy=applyLondonSun(month,day,hour);
+ $('solar-info').textContent=solarDescription(solarStudy);
+ status('Solar study · '+solarDescription(solarStudy));
+}
+let solarStudy=applyLondonSun(6,22,16); // Keep the former 21 June, 16:00 BST opening light.
+$('solar-info').textContent=solarDescription(solarStudy);
+sunMonthSelect.addEventListener('change',()=>{rebuildSolarDays();updateSelectedSun();});
+sunDaySelect.addEventListener('change',updateSelectedSun);
+sunHourSelect.addEventListener('change',updateSelectedSun);
+
+const rig=new THREE.Group();scene.add(rig);
+const camera=new THREE.PerspectiveCamera(73,innerWidth/innerHeight,.035,90);rig.add(camera);
+// The reference avatar is 1.88 m tall, with nominal eye height 1.77 m. In VR we now scale the whole tracked viewer rig to 90%, not merely lower the camera.
+// In WebXR, the tracked eye height is calibrated against the local-floor reference space.
+const USER_HEIGHT_M=1.88, TARGET_EYE_HEIGHT_M=1.77;
+const VR_VIEWER_SCALE=0.90; // Scale the tracked headset and controller rig uniformly; do not scale the apartment.
+let xrNeedsHeightCalibration=false;let calibratedEyeOffset=0;
+
+const planCamera=new THREE.OrthographicCamera(-9,9,6,-6,.1,80);
+planCamera.position.set(0,22,0);planCamera.up.set(0,0,-1);planCamera.lookAt(0,0,0);
+const planControls=new OrbitControls(planCamera,renderer.domElement);
+planControls.enableRotate=false;planControls.enableDamping=true;planControls.dampingFactor=.12;
+planControls.minZoom=.55;planControls.maxZoom=5;planControls.screenSpacePanning=true;
+planControls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.PAN};
+
+let mode='plan',pitch=0,yaw=0;
+const architectural=new THREE.Group();scene.add(architectural);
+// v0.19 shell remains original. Photo props are rendered only in walk / Quest,
+// never over the kitchen or entrance floor in the plan view.
+const skirtingDecor=new THREE.Group();skirtingDecor.name='Slim baseboards';skirtingDecor.visible=false;scene.add(skirtingDecor);
+const fixtureDecor=new THREE.Group();fixtureDecor.name='Reception fixtures';fixtureDecor.visible=false;scene.add(fixtureDecor);
+const labels=new THREE.Group();scene.add(labels);
+const roof=new THREE.Group();scene.add(roof);
+const ALL_SOLIDS=[];
+const solidMat=new THREE.MeshStandardMaterial({color:'#eaeaea',roughness:.94,metalness:0});
+const edgeMat=new THREE.MeshStandardMaterial({color:'#eaeaea',roughness:1});
+const doorMat=new THREE.MeshStandardMaterial({color:'#caa980',roughness:.82});
+const frameMat=new THREE.MeshStandardMaterial({color:'#f0efec',roughness:.44,metalness:.12});
+const glassMat=new THREE.MeshPhysicalMaterial({color:'#faf9f6',transparent:true,opacity:.20,metalness:0,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
+const darkBase=new THREE.MeshStandardMaterial({color:'#b9a78c',roughness:1});
+// v0.22 decorative materials only: preserve all v0.19 floor, wall, ceiling and glazing materials.
+const baseboardMat=new THREE.MeshStandardMaterial({color:'#f4f3f0',roughness:.72});
+const baseboardCapMat=new THREE.MeshStandardMaterial({color:'#e9e8e4',roughness:.78});
+const radiatorMat=new THREE.MeshStandardMaterial({color:'#f8f7f4',roughness:.59});
+const radiatorValveMat=new THREE.MeshStandardMaterial({color:'#aaa8a3',metalness:.37,roughness:.47});
+const socketPlateMat=new THREE.MeshStandardMaterial({color:'#a7a7a5',metalness:.36,roughness:.40});
+const socketFaceMat=new THREE.MeshStandardMaterial({color:'#a7a7a5',roughness:.62}); // No white centre in any plug plate.
+const socketHoleMat=new THREE.MeshStandardMaterial({color:'#534a3e',roughness:.75});
+const switchPlateMat=new THREE.MeshStandardMaterial({color:'#a7a7a5',roughness:.69,metalness:0});
+const switchRockerMat=new THREE.MeshStandardMaterial({color:'#858583',roughness:.66,metalness:0});
+
+function seeded(i){let v=Math.sin(i*127.1+421.6)*43758.5453;return v-Math.floor(v);}
+function canvasTex(kind){
+ const c=document.createElement('canvas');c.width=512;c.height=512;const ctx=c.getContext('2d');
+ if(kind==='wood'){
+  ctx.fillStyle='#dfc99a';ctx.fillRect(0,0,512,512);
+  for(let j=0;j<7;j++){
+   const y=j*78;ctx.fillStyle=(j%2?'#e4d0a8':'#d8c18f');ctx.fillRect(0,y,512,77);
+   ctx.fillStyle='#af946b';ctx.globalAlpha=.25;ctx.fillRect(0,y,512,1);ctx.globalAlpha=1;
+   for(let k=0;k<24;k++){
+    ctx.strokeStyle=`rgba(119,85,43,${.014+seeded(j*71+k)*.09})`;
+    ctx.beginPath();ctx.moveTo(0,y+seeded(k+j*14)*76);ctx.lineTo(512,y+seeded(k+j*14)*76+seeded(k+99)*3);ctx.stroke();
+   }
+  }
+ }else if(kind==='carpet'){
+  ctx.fillStyle='#e9dfcc';ctx.fillRect(0,0,512,512);
+  for(let j=0;j<9000;j++){const v=Math.floor(180+seeded(j)*65);ctx.fillStyle=`rgba(${v},${v-7},${v-19},${.025+seeded(j+40)*.16})`;ctx.fillRect(seeded(j*2+13)*512,seeded(j*3+20)*512,1,1);}
+ }else{
+  ctx.fillStyle=kind==='tile'?'#aaa9a6':'#c8c7c4';ctx.fillRect(0,0,512,512);
+  for(let j=0;j<5200;j++){let v=seeded(j*2);ctx.fillStyle=`rgba(${v>.5?255:53},${v>.5?255:48},${v>.5?255:42},${.012+seeded(j+19)*.075})`;ctx.fillRect(seeded(j*5)*512,seeded(j*6+11)*512,1+seeded(j+35)*3,1+seeded(j+7)*3);}
+ }
+ const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.40,.40);tx.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);return tx;
+}
+const floorMats={
+ wood:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('wood'),roughness:.78}),
+ carpet:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('carpet'),roughness:1}),
+ tile:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('tile'),roughness:.93}),
+ bath:new THREE.MeshStandardMaterial({color:'#ffffff',map:canvasTex('bath'),roughness:.93})
+};
+function floorGeometry(points){
+ // ShapeGeometry uses XY coordinates. Reversing Z and rotating -90° maps it to the XZ ground plane with upward normals.
+ const s=new THREE.Shape();points.forEach((p,i)=>{const v=m(p);if(!i)s.moveTo(v.x,-v.y);else s.lineTo(v.x,-v.y);});s.closePath();
+ const geo=new THREE.ShapeGeometry(s);geo.rotateX(-Math.PI/2);return geo;
+}
+const base=new THREE.Mesh(floorGeometry(PLAN.outline),floorMats.wood);base.position.y=.002;base.receiveShadow=true;architectural.add(base);
+for(const room of PLAN.rooms){
+ const mesh=new THREE.Mesh(floorGeometry(room.points),floorMats[room.finish]);mesh.position.y=.003;
+ mesh.receiveShadow=true;mesh.userData.roomId=room.id;architectural.add(mesh);
+}
+const threshold=new THREE.Mesh(floorGeometry([[497.6919,567],[627.3081,567],[627.3081,569],[497.6919,569]]),floorMats.wood);threshold.position.y=.003;architectural.add(threshold);
+function labelForRoom(room){
+ const c=document.createElement('canvas');c.width=512;c.height=164;const x=c.getContext('2d');
+ x.fillStyle='rgba(252,251,246,.82)';x.beginPath();x.roundRect(3,3,506,158,22);x.fill();
+ x.fillStyle='#292018';x.font='bold 35px Arial';x.textAlign='center';x.fillText(room.name,256,70);
+ x.fillStyle='#76624e';x.font='25px Arial';x.fillText(room.subtitle,256,115);
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+ const plate=new THREE.Mesh(new THREE.PlaneGeometry(room.id==='hall'?1.8:2.6,room.id==='hall'?.57:.83),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false}));
+ const p=m(room.label);plate.position.set(p.x,.025,p.y);plate.rotation.x=-Math.PI/2;labels.add(plate);
+}
+PLAN.rooms.forEach(labelForRoom);
+
+await RAPIER.init();
+const world=new RAPIER.World({x:0,y:-9.81,z:0});
+const staticBody=world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+// Physics floor is an actual triangle mesh of the traced floor polygon (rather than an oversized invisible rectangle).
+const physFloor=floorGeometry(PLAN.outline);const arr=physFloor.getAttribute('position').array;
+const ix=physFloor.index?physFloor.index.array:Array.from({length:arr.length/3},(_,i)=>i);
+world.createCollider(RAPIER.ColliderDesc.trimesh(new Float32Array(arr),new Uint32Array(ix)).setFriction(.9),staticBody);
+physFloor.dispose();
+function collisionSegment(a,b,width){ALL_SOLIDS.push({a:m(a),b:m(b),width});}
+function rectangularWall(a,b,height,thick,material,yCenter=height/2,withCollider=true){
+ const v=m(a),w=m(b),d=w.clone().sub(v),len=d.length();if(len<.015)return;
+ const rot=-Math.atan2(d.y,d.x);const mesh=new THREE.Mesh(new THREE.BoxGeometry(len,height,thick),material);
+ mesh.position.set((v.x+w.x)/2,yCenter,(v.y+w.y)/2);mesh.rotation.y=rot;
+ // ALL solid wall sections must cast shadows. This was missing from the
+ // rectangularWall helper in v0.4: the GPU drew visible walls but sunlight
+ // went straight through them, including the wall joining reception to kitchen.
+ // The same helper builds window frames and solid door headers.
+ mesh.castShadow=true;mesh.receiveShadow=true;
+ architectural.add(mesh);
+ if(withCollider){const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
+  world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,height/2,thick/2).setTranslation(mesh.position.x,yCenter,mesh.position.z).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}).setFriction(.8),staticBody);
+  collisionSegment(a,b,thick);
+ }
+ return mesh;
+}
+for(const w of PLAN.walls) rectangularWall(w.a,w.b,H,w.kind==='outer'?PLAN.wallOuter:PLAN.wallInner,w.kind==='outer'?solidMat:edgeMat);
+// v0.24: intact pre-v0.16 kitchen/entrance geometry restored; avoid the broad v0.22 wall-centred
+// trim boxes, which could visibly obscure parts of the kitchen and entrance floors.
+// Instance slim skirting on both wall FACES, not across the floor. No new colliders.
+{
+ const count=PLAN.walls.length*2;
+ const unit=new THREE.BoxGeometry(1,1,1);
+ const bodies=new THREE.InstancedMesh(unit,baseboardMat,count);
+ const caps=new THREE.InstancedMesh(unit,baseboardCapMat,count);
+ bodies.name='Slim 100mm skirting';caps.name='Upper 12mm skirting trim';
+ bodies.castShadow=true;bodies.receiveShadow=true;
+ caps.castShadow=true;caps.receiveShadow=true;
+ const dummy=new THREE.Object3D(),up=new THREE.Vector3(0,1,0);
+ const height=PLAN.fixtures?.skirtingHeightM||.110;
+ let i=0;
+ for(const wall of PLAN.walls){
+  const va=m(wall.a),vb=m(wall.b),d=vb.clone().sub(va),len=d.length();
+  if(len<.025)throw new Error('Degenerate wall for skirting');
+  const yaw=-Math.atan2(d.y,d.x),nx=Math.sin(yaw),nz=Math.cos(yaw);
+  const thick=wall.kind==='outer'?PLAN.wallOuter:PLAN.wallInner;
+  const offset=thick/2+.003;
+  dummy.quaternion.setFromAxisAngle(up,yaw);
+  for(const side of [-1,1]){
+   const x=(va.x+vb.x)/2+side*nx*offset;
+   const z=(va.y+vb.y)/2+side*nz*offset;
+   dummy.position.set(x,(height-.010)/2,z);
+   dummy.scale.set(len,height-.010,.008);
+   dummy.updateMatrix();bodies.setMatrixAt(i,dummy.matrix);
+   dummy.position.y=height-.006;
+   dummy.scale.set(len,.012,.016);
+   dummy.updateMatrix();caps.setMatrixAt(i,dummy.matrix);
+   i++;
+  }
+ }
+ bodies.instanceMatrix.needsUpdate=true;
+ caps.instanceMatrix.needsUpdate=true;
+ skirtingDecor.add(bodies);
+}
+function beam(a,b,y,height,thick=.044){rectangularWall(a,b,height,thick,frameMat,y+height/2,false);}
+function windowPane(spec){
+ const a=m(spec.a),b=m(spec.b);const len=a.distanceTo(b);const mid=a.clone().add(b).multiplyScalar(.5);
+ const rot=-Math.atan2(b.y-a.y,b.x-a.x);
+ const glass=new THREE.Mesh(new THREE.BoxGeometry(len,H-.075,.014),glassMat);
+ glass.position.set(mid.x,(H-.075)/2+.025,mid.y);glass.rotation.y=rot;
+ // Transparent glass lets sunlight pass. Only opaque mullions, sills, headers,
+ // doors and walls cast directional-light shadows.
+ glass.castShadow=false;glass.receiveShadow=false;architectural.add(glass);
+ // Clear glazing still collides: outside balconies are deliberately not built yet.
+ const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rot);
+ world.createCollider(RAPIER.ColliderDesc.cuboid(len/2,H/2,.028).setTranslation(mid.x,H/2,mid.y).setRotation({x:q.x,y:q.y,z:q.z,w:q.w}),staticBody);
+ collisionSegment(spec.a,spec.b,.056);
+ // Vertical metal mullions and a restrained floor-to-ceiling frame.
+ for(const t of [0,...spec.mullions,1]){
+  const x=a.x+(b.x-a.x)*t,z=a.y+(b.y-a.y)*t;
+  const bar=new THREE.Mesh(new THREE.BoxGeometry(.044,H,.044),frameMat);
+  bar.position.set(x,H/2,z);bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
+ }
+ for(const y of [.025,H-.025])beam(spec.a,spec.b,y-.025,.05);
+ // Full-height glazing can still have narrow window thresholds / low frames.
+ // The fixed glass panels flanking the reception balcony door get a narrow
+ // horizontal frame, casting recognizable sun bands across the wood floor.
+ if(spec.name==='Reception balcony glazing'){
+  const p=(t)=>[spec.a[0]+(spec.b[0]-spec.a[0])*t,spec.a[1]+(spec.b[1]-spec.a[1])*t];
+  // Four sections from the newly supplied flat photographs. The second section
+  // is the glazed balcony door. Solid lower panels/rails are white, matching the photo.
+  const divisions=[0,...spec.mullions,1];
+  for(let i=0;i<divisions.length-1;i++){
+   const left=p(divisions[i]+.007),right=p(divisions[i+1]-.007);
+   beam(left,right,.16,.04,.070);
+   rectangularWall(left,right,.135,.035,frameMat,.073,false);
+  }
+  // Slim frame around the moving glazed door panel, without blocking daylight.
+  const d0=divisions[spec.doorSection],d1=divisions[spec.doorSection+1];
+  for(const t of [d0+.013,d1-.013]){
+   const point=m(p(t)),bar=new THREE.Mesh(new THREE.BoxGeometry(.028,H-.22,.034),frameMat);
+   bar.position.set(point.x+.017,(H-.22)/2+.17,point.y);
+   bar.castShadow=true;bar.receiveShadow=true;architectural.add(bar);
+  }
+  // The original door threshold and transparent glass remain.
+  beam(spec.a,spec.b,0.065,0.07,0.095);
+ }
+ // Small discreet door handles at eye / waist level, not a speculative detailed door style.
+ const handle=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.08),new THREE.MeshStandardMaterial({color:'#bdb3a6',metalness:.75,roughness:.3}));
+ const t=spec.name==='Reception balcony glazing'?spec.mullions[1]-.035:.5;
+ handle.position.set(a.x+(b.x-a.x)*t+(spec.name==='Reception balcony glazing'?.054:0),
+  1.02,a.y+(b.y-a.y)*t);
+ handle.castShadow=true;architectural.add(handle);
+}
+PLAN.glazing.forEach(windowPane);
+// Real 3D sofa based on resident's photographs, mounted against the angled white
+// reception wall, 90 cm along from the large balcony-window corner; faces kitchen.
+let sofaCollision=null;
+const photoSofa=PLAN.furniture?.sofa;
+if(photoSofa){
+ const a=m(photoSofa.wallA),b=m(photoSofa.wallB);
+ const tangent=b.clone().sub(a).normalize(),inward=new THREE.Vector2(-tangent.y,tangent.x);
+ const angle=-Math.atan2(tangent.y,tangent.x);
+ const centre=a.clone().addScaledVector(tangent,photoSofa.fromWindowM+photoSofa.widthM/2)
+  .addScaledVector(inward,photoSofa.wallClearanceM+photoSofa.depthM/2);
+ const rugSpec=PLAN.furniture?.receptionRug;
+ // Lay the light, raised carpet BELOW the sofa (not a decal), with its near edge
+ // tucked under the back feet and its far edge projecting 1.08 m into the room.
+ if(rugSpec){
+  const rugCentre=a.clone().addScaledVector(tangent,photoSofa.fromWindowM+photoSofa.widthM/2)
+   .addScaledVector(inward,rugSpec.fromWallM+rugSpec.depthM/2);
+  const rug=createSofaRug(THREE,{width:rugSpec.widthM,depth:rugSpec.depthM,
+   thicknessM:rugSpec.thicknessM});
+  rug.position.set(rugCentre.x,0,rugCentre.y);rug.rotation.y=angle;
+  rug.userData.placement={frontProjectionM:Number(
+   (rugSpec.fromWallM+rugSpec.depthM-photoSofa.wallClearanceM-photoSofa.depthM).toFixed(2))};
+  architectural.add(rug); // Both plan and eye-level views; rug has no collider.
+ }
+ // Build the original silhouette, then shrink ALL dimensions 10% together.
+ // The physical PLAN values and Rapier/player colliders use the NEW real size.
+ const factor=photoSofa.scale||1;
+ const model=createSofa(THREE,{width:photoSofa.widthM/factor,depth:photoSofa.depthM/factor});
+ model.scale.setScalar(factor);
+ const rugHeight=rugSpec?.thicknessM||0;
+ model.position.set(centre.x,rugHeight,centre.y);model.rotation.y=angle;
+ architectural.add(model); // Sofa visible in plan, desktop walk and Quest.
+ // Stationary furniture blocks joystick/WASD navigation as well as Rapier bodies.
+ const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angle);
+ const halfColliderHeight=photoSofa.heightM/2;
+ world.createCollider(RAPIER.ColliderDesc.cuboid(photoSofa.widthM/2,halfColliderHeight,photoSofa.depthM/2)
+  .setTranslation(centre.x,halfColliderHeight+rugHeight,centre.y)
+  .setRotation({x:q.x,y:q.y,z:q.z,w:q.w}).setFriction(.85),staticBody);
+ sofaCollision={x:centre.x,z:centre.y,c:Math.cos(angle),s:Math.sin(angle),
+  hw:photoSofa.widthM/2,hd:photoSofa.depthM/2};
+ model.userData.placement={distanceFromWindowM:photoSofa.fromWindowM,
+  facing:'kitchen',referenceWall:photoSofa.wallA,uniformScale:factor};
+}
+// v0.22: annotated photo-floorplan fixtures only; no walls or window framing altered.
+// Both mounting surfaces face the living-room interior, selected by interiorPoint.
+function wallFacingFixture(spec,metresFromA){
+ const a=m(spec.wallA),b=m(spec.wallB),v=b.clone().sub(a);
+ const len=v.length();
+ if(metresFromA<0||metresFromA>len)throw new Error('Fixture anchor lies outside the selected wall');
+ const group=new THREE.Group();
+ group.position.set(a.x+v.x*metresFromA/len,0,a.y+v.y*metresFromA/len);
+ let angle=-Math.atan2(v.y,v.x);
+ const centre=a.clone().add(b).multiplyScalar(.5);
+ const inward=m(spec.interiorPoint).sub(centre);
+ if(Math.sin(angle)*inward.x+Math.cos(angle)*inward.y<0)angle+=Math.PI;
+ group.rotation.y=angle;
+ fixtureDecor.add(group);
+ return group;
+}
+function decorativeBlock(parent,material,w,h,d,x,y,z){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+ mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;
+ parent.add(mesh);return mesh;
+}
+// White, flat horizontal-panel radiator on the SHORT VERTICAL WALL x=250,
+// y=460..568 on the reception side: the red line beside the window in the plan.
+const heater=PLAN.fixtures?.receptionRadiator;
+if(heater){
+ const group=wallFacingFixture(heater,heater.centerAlongM);
+ const front=PLAN.wallOuter/2+.058;
+ decorativeBlock(group,radiatorMat,heater.widthM-.014,heater.heightM-.045,.026,
+  0,heater.bottomM+heater.heightM/2,front-.022);
+ const count=8;
+ for(let i=0;i<count;i++){
+  const h=(heater.heightM-.090)/count;
+  const y=heater.bottomM+.045+(i+.5)*h;
+  decorativeBlock(group,radiatorMat,heater.widthM-.008,h-.008,.038,0,y,front+.006);
+ }
+ for(const side of [-1,1]){
+  const x=side*(heater.widthM/2-.070);
+  const pipeHeight=heater.bottomM+.030;
+  const pipe=new THREE.Mesh(new THREE.CylinderGeometry(.010,.010,pipeHeight,8),radiatorMat);
+  pipe.position.set(x,pipeHeight/2+.010,front-.012);
+  pipe.castShadow=true;pipe.receiveShadow=true;group.add(pipe);
+  decorativeBlock(group,radiatorValveMat,.037,.034,.043,x,heater.bottomM+.018,front+.005);
+ }
+}
+// Reference photo: TWO all-grey single switch plates to the LEFT of ONE
+// brushed-metal all-grey UK double socket on the RIGHT, centred 0.40 m above floor.
+// Same wall and decorative mounting logic; radiator remains exactly where it was.
+for(const plate of PLAN.fixtures?.receptionPlates||[]){
+ const group=wallFacingFixture(plate,plate.alongM);
+ const z=PLAN.wallInner/2+.012;
+ if(plate.type==='singleSwitch'){
+  const width=.091,height=.091;
+  decorativeBlock(group,switchPlateMat,width,height,.011,0,plate.heightM,z);
+  decorativeBlock(group,socketFaceMat,width-.011,height-.013,.004,0,plate.heightM,z+.008);
+  decorativeBlock(group,switchRockerMat,.023,.034,.006,0,plate.heightM,z+.014);
+  for(const dx of [-.033,.033])
+   decorativeBlock(group,socketHoleMat,.0025,.0025,.0015,dx,plate.heightM,z+.012);
+ }else if(plate.type==='doubleSocket'){
+  const width=.153,height=.091;
+  decorativeBlock(group,socketPlateMat,width,height,.013,0,plate.heightM,z);
+  decorativeBlock(group,socketFaceMat,width-.016,height-.015,.004,0,plate.heightM,z+.010);
+  for(const dx of [-.038,.038]){
+   decorativeBlock(group,socketHoleMat,.009,.014,.002,dx,plate.heightM+.015,z+.014);
+   decorativeBlock(group,socketHoleMat,.008,.013,.002,dx-.018,plate.heightM-.010,z+.014);
+   decorativeBlock(group,socketHoleMat,.008,.013,.002,dx+.018,plate.heightM-.010,z+.014);
+   decorativeBlock(group,switchRockerMat,.013,.013,.004,dx+.024,plate.heightM+.021,z+.015);
+  }
+ }else{
+  throw new Error('Unknown electrical fitting type: '+plate.type);
+ }
+}
+function doorPanel(s){
+ const hinge=m(s.a),end=m(s.b);if(s.id==='living-left'){hinge.x+=.06;end.x+=.06;}if(s.id==='living-right'){hinge.x-=.06;end.x-=.06;}const dir=end.clone().sub(hinge);let theta=Math.atan2(dir.y,dir.x);
+ if(s.open)theta+=s.swing||0;
+ const length=dir.length(),dest=new THREE.Vector2(Math.cos(theta),Math.sin(theta)).multiplyScalar(length);
+ const center=hinge.clone().addScaledVector(dest,.5);
+ const standard=PLAN.doorStandards[s.kind];
+ if(!standard)throw new Error('Door standard missing: '+s.id);
+ if(Math.abs(length-standard.width)>.002)throw new Error('Door opening / leaf width mismatch: '+s.id);
+ const leafThickness=standard.thickness;
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(length,DOOR_H,leafThickness),doorMat);
+ mesh.position.set(center.x,DOOR_H/2,center.y);mesh.rotation.y=-theta;mesh.castShadow=true;mesh.receiveShadow=true;architectural.add(mesh);
+ // The requested 1,931 mm door ends 169 mm below the confirmed 2,100 mm ceiling.
+ // The opaque white header fills the difference, without changing the ceiling or door width.
+ const headerHeight=H-DOOR_H;
+ if(headerHeight>0)rectangularWall(s.a,s.b,headerHeight,.085,edgeMat,DOOR_H+headerHeight/2,false);
+ const handle=new THREE.Mesh(new THREE.SphereGeometry(.032,8,6),new THREE.MeshStandardMaterial({color:'#a8a198',metalness:.42,roughness:.42}));
+ handle.position.set(hinge.x+dest.x*.85,1.0,hinge.y+dest.y*.85);handle.castShadow=true;architectural.add(handle);
+ if(!s.open){
+  world.createCollider(RAPIER.ColliderDesc.cuboid(length/2,DOOR_H/2,leafThickness/2).setTranslation(center.x,DOOR_H/2,center.y).setRotation({x:0,y:Math.sin(-theta/2),z:0,w:Math.cos(-theta/2)}),staticBody);
+  collisionSegment(s.a,s.b,leafThickness);
+ }
+}
+PLAN.doors.forEach(doorPanel);
+const ceiling=new THREE.Mesh(floorGeometry(PLAN.outline),new THREE.MeshStandardMaterial({color:'#eaeaea',side:THREE.DoubleSide,roughness:1}));
+ceiling.position.y=H;
+// CRITICAL: the ceiling must CAST shadows, not just receive them. Without this,
+// afternoon sunlight enters from above and reaches the bedroom despite opaque
+// walls. With it, direct sunlight reaches the floor only via genuine openings.
+ceiling.castShadow=true;ceiling.receiveShadow=true;roof.add(ceiling);
+// In plan mode the roof stays in the shadow pass but writes neither colour nor
+// depth in the main camera pass, so the floor plan remains visible from above.
+function setCeilingVisibleInCamera(show){
+ ceiling.material.colorWrite=show;
+ ceiling.material.depthWrite=show;
+ // Overhead plan shows the original v0.19 floor edges and openings, unobscured.
+ // In immersive or desktop walk modes these accessories become visible again.
+ skirtingDecor.visible=show;
+ fixtureDecor.visible=show;
+}
+// v0.33: Blender baked appearance; original architecture still supplies collisions.
+const bakedRoot=new THREE.Group();bakedRoot.name='Blender baked apartment';scene.add(bakedRoot);
+let bakedRoof=null, bakedReady=false, lightingMode='baked';
+function applyBakedVisibility(){
+ const useBake=bakedReady&&lightingMode==='baked'&&(mode!=='plan'||renderer.xr.isPresenting);
+ bakedRoot.visible=useBake;
+ architectural.visible=!useBake;roof.visible=!useBake;
+ skirtingDecor.visible=!useBake&&(mode!=='plan'||renderer.xr.isPresenting);
+ fixtureDecor.visible=skirtingDecor.visible;
+ scene.background.set('#ffffff');
+}
+function setLightingMode(value){
+ lightingMode=value;$('lighting-mode').value=value;
+ for(const el of [sunMonthSelect,sunDaySelect,sunHourSelect])el.disabled=value==='baked';
+ $('solar-info').textContent=value==='baked'?'Baked lighting · 22 June 2026 · 16:00 BST':solarDescription(solarStudy);
+ applyBakedVisibility();
+}
+$('lighting-mode').addEventListener('change',e=>setLightingMode(e.target.value));
+async function loadBakedApartment(){
+ try{
+  status('Loading baked apartment…');
+  const [data,texture]=await Promise.all([
+   fetch('./apartment/baked/geometry.json?v=033').then(r=>{if(!r.ok)throw new Error('Geometry download failed');return r.json();}),
+   new THREE.TextureLoader().loadAsync('./apartment/baked/lighting.png?v=033')
+  ]);
+  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+  const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,toneMapped:false});
+  for(const [name,part] of Object.entries(data)){
+   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(part.positions,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(part.uv,2));geometry.computeBoundingSphere();
+   const mesh=new THREE.Mesh(geometry,material);mesh.name=name;bakedRoot.add(mesh);if(name==='ceiling')bakedRoof=mesh;
+  }
+  bakedReady=true;setLightingMode('baked');switchMode('walk');
+  status('Baked apartment ready · white exterior · left stick move, right stick 30° snap-turn.');
+ }catch(error){console.error(error);setLightingMode('live');status('Baked assets could not load. Live apartment remains available; reload to retry.');}
+}
+setLightingMode('baked');
+// Minimal vertical cutaway outline helper in overhead view. Not furniture or exterior scenery.
+const spawn=m(PLAN.spawn);
+const marker=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.012,24),new THREE.MeshBasicMaterial({color:'#b78550'}));
+marker.position.set(spawn.x,.038,spawn.y);labels.add(marker);
+rig.position.set(spawn.x,0,spawn.y);camera.position.set(0,TARGET_EYE_HEIGHT_M,0);
+const handColors=[0xe0c09a,0xe6b685];
+for(let i=0;i<2;i++){
+ const controller=renderer.xr.getController(i);rig.add(controller);
+ const pointer=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.65,7),new THREE.MeshBasicMaterial({color:handColors[i],transparent:true,opacity:.55}));
+ pointer.rotation.x=Math.PI/2;pointer.position.z=-.33;controller.add(pointer);
+ const grip=renderer.xr.getControllerGrip(i);rig.add(grip);
+}
+const vrButton=VRButton.createButton(renderer,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
+vrButton.textContent='ENTER QUEST VR';$('vr-slot').appendChild(vrButton);
+function switchMode(next){
+ if(renderer.xr.isPresenting)return;
+ mode=next;const plan=mode==='plan';roof.visible=true;setCeilingVisibleInCamera(!plan);labels.visible=plan;
+ planControls.enabled=plan;renderer.domElement.style.cursor=plan?'grab':'crosshair';
+ $('overhead').classList.toggle('active',plan);$('walk').classList.toggle('active',!plan);applyBakedVisibility();
+ if(!plan){if(document.pointerLockElement===renderer.domElement)document.exitPointerLock(); status('Walk mode · click the scene to look around; WASD to move.');}
+ else {if(document.pointerLockElement===renderer.domElement)document.exitPointerLock();status('Plan mode · original irregular walls and real openings; drag / scroll to inspect.');}
+}
+$('overhead').addEventListener('click',()=>switchMode('plan'));
+$('walk').addEventListener('click',()=>switchMode('walk'));
+$('reset').addEventListener('click',()=>{
+ rig.position.set(spawn.x,renderer.xr.isPresenting?calibratedEyeOffset:0,spawn.y);yaw=0;pitch=0;rig.rotation.y=0;camera.rotation.set(0,0,0);
+ if(renderer.xr.isPresenting)xrNeedsHeightCalibration=true;
+ planControls.reset();status('Position reset to the entrance hall.');
+});
+renderer.domElement.addEventListener('click',()=>{
+ if(mode==='walk'&&!renderer.xr.isPresenting)renderer.domElement.requestPointerLock?.();
+});
+document.addEventListener('mousemove',e=>{
+ if(document.pointerLockElement!==renderer.domElement||renderer.xr.isPresenting)return;
+ yaw-=e.movementX*.0022;pitch=THREE.MathUtils.clamp(pitch-e.movementY*.002,-1.22,1.22);
+ rig.rotation.y=yaw;camera.rotation.x=pitch;
+});
+const keys=new Set();
+window.addEventListener('keydown',e=>{keys.add(e.code);if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
+window.addEventListener('keyup',e=>keys.delete(e.code));
+window.addEventListener('blur',()=>keys.clear());
+function segmentDistSq(x,z,a,b){
+ const dx=b.x-a.x,dz=b.y-a.y;const d=dx*dx+dz*dz;const t=d?Math.max(0,Math.min(1,((x-a.x)*dx+(z-a.y)*dz)/d)):0;
+ const px=a.x+t*dx,pz=a.y+t*dz;return(x-px)**2+(z-pz)**2;
+}
+function validPlayer(x,z){
+ // Collision-aware ground-plane navigation; fixed Rapier colliders use the same segments.
+ for(const s of ALL_SOLIDS){const r=.22+s.width*.5;if(segmentDistSq(x,z,s.a,s.b)<r*r)return false;}
+ if(sofaCollision){
+  const dx=x-sofaCollision.x,dz=z-sofaCollision.z;
+  const lx=sofaCollision.c*dx-sofaCollision.s*dz;
+  const lz=sofaCollision.s*dx+sofaCollision.c*dz;
+  const avatarRadius=.21;
+  if(Math.abs(lx)<sofaCollision.hw+avatarRadius &&
+     Math.abs(lz)<sofaCollision.hd+avatarRadius)return false;
+ }
+ return true;
+}
+function moveAvatar(dx,dz){
+ // Microsteps prevent fast joystick movement from tunnelling through thin walls.
+ const n=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.045));
+ for(let i=0;i<n;i++){
+  const x=rig.position.x+dx/n,z=rig.position.z+dz/n;
+  if(validPlayer(x,rig.position.z))rig.position.x=x;
+  if(validPlayer(rig.position.x,z))rig.position.z=z;
+ }
+}
+function updateDesktop(dt){
+ if(mode!=='walk')return;
+ let f=0,s=0;
+ if(keys.has('KeyW')||keys.has('ArrowUp'))f++;
+ if(keys.has('KeyS')||keys.has('ArrowDown'))f--;
+ if(keys.has('KeyA'))s--;
+ if(keys.has('KeyD'))s++;
+ if(keys.has('ArrowLeft')){yaw+=dt*1.4;rig.rotation.y=yaw;}
+ if(keys.has('ArrowRight')){yaw-=dt*1.4;rig.rotation.y=yaw;}
+ if(!f&&!s)return;
+ const mag=Math.max(1,Math.hypot(f,s));f/=mag;s/=mag;
+ const speed=(keys.has('ShiftLeft')?3.25:1.85)*dt;
+ // Camera looks along -Z by default; rig yaw rotates the walk vector.
+ const q=new THREE.Vector3(s,0,-f).applyAxisAngle(new THREE.Vector3(0,1,0),rig.rotation.y);
+ moveAvatar(q.x*speed,q.z*speed);
+}
+function activeStick(gamepad){
+ // Meta Quest Touch controllers ordinarily use the standard WebXR thumbstick
+ // at axes 2/3. Some mappings expose it at 0/1; read the moving pair rather
+ // than assuming that a present but unused 2/3 pair is the thumbstick.
+ const a=gamepad.axes||[];
+ const valid=(i,j)=>Number.isFinite(a[i])&&Number.isFinite(a[j]);
+ const primary=valid(2,3)?{x:a[2],y:a[3]}:null;
+ const fallback=valid(0,1)?{x:a[0],y:a[1]}:null;
+ if(primary && (Math.abs(primary.x)>0.12||Math.abs(primary.y)>0.12))return primary;
+ if(fallback && (Math.abs(fallback.x)>0.12||Math.abs(fallback.y)>0.12))return fallback;
+ return primary||fallback||{x:0,y:0};
+}
+let snapTurnReady=true;
+const xrForward=new THREE.Vector3(),xrRight=new THREE.Vector3();
+const xrRigOrientation=new THREE.Quaternion(),xrHeadOrientation=new THREE.Quaternion();
+const xrLocalHead=new THREE.Vector3(),xrPivotBefore=new THREE.Vector3(),xrPivotAfter=new THREE.Vector3();
+const WORLD_UP=new THREE.Vector3(0,1,0);
+function snapTurn(direction,viewerPose){
+ // Snap-turn the player rig about the TRACKED HEAD position, avoiding a lateral
+ // teleport if the user has physically moved within their play area.
+ // Do not read the XR ArrayCamera here: its matrices may be a frame behind.
+ const head=viewerPose.transform.position;
+ xrLocalHead.set(head.x,head.y,head.z);
+ rig.updateMatrixWorld(true);
+ xrPivotBefore.copy(xrLocalHead);
+ rig.localToWorld(xrPivotBefore);
+ rig.rotation.y-=direction*THREE.MathUtils.degToRad(30);
+ rig.updateMatrixWorld(true);
+ xrPivotAfter.copy(xrLocalHead);
+ rig.localToWorld(xrPivotAfter);
+ rig.position.x+=xrPivotBefore.x-xrPivotAfter.x;
+ rig.position.z+=xrPivotBefore.z-xrPivotAfter.z;
+ rig.updateMatrixWorld(true);
+}
+function calibrateXREyeHeight(viewerPose){
+ if(!xrNeedsHeightCalibration)return;
+ const trackedY=viewerPose?.transform?.position?.y;
+ if(!Number.isFinite(trackedY)||trackedY<0.25)return;
+ // XR tracking provides eye height; adjust only the difference to the chosen
+ // user's eye-level calibration.
+ // With a 90% rig scale, the tracked eye height already becomes 90% of its unscaled value.
+ // Scale the additive calibration offset too, avoiding a double adjustment.
+ calibratedEyeOffset=THREE.MathUtils.clamp((TARGET_EYE_HEIGHT_M-trackedY)*VR_VIEWER_SCALE,-1,1);
+ rig.position.y=calibratedEyeOffset;
+ xrNeedsHeightCalibration=false;
+ status(`Quest viewpoint: ${Math.round(VR_VIEWER_SCALE*100)}% size (effective eye level ~${(TARGET_EYE_HEIGHT_M*VR_VIEWER_SCALE).toFixed(2)} m). Right stick: 30° snap-turn.`);
+}
+function updateVR(dt){
+ const session=renderer.xr.getSession();if(!session)return;
+ const frame=renderer.xr.getFrame(),space=renderer.xr.getReferenceSpace();
+ // This viewer pose is in the SAME tracking space as the scene's player rig.
+ // Unlike the XR ArrayCamera, it is current for this animation frame.
+ const viewerPose=frame&&space?frame.getViewerPose(space):null;
+ if(!viewerPose)return; // Never move against a guessed or stale heading.
+ calibrateXREyeHeight(viewerPose);
+ let leftStick=null,rightStick=null;
+ for(const source of session.inputSources){
+  if(!source.gamepad)continue;
+  if(source.handedness==='left')leftStick=activeStick(source.gamepad);
+  if(source.handedness==='right')rightStick=activeStick(source.gamepad);
+ }
+ // Process the snap FIRST, independent of inputSources enumeration order.
+ if(rightStick){
+  if(Math.abs(rightStick.x)<.30)snapTurnReady=true;
+  if(snapTurnReady&&Math.abs(rightStick.x)>.70){
+   snapTurn(rightStick.x>0?1:-1,viewerPose);
+   snapTurnReady=false;
+  }
+ }
+ if(!leftStick)return;
+ const dead=.16;
+ const side=Math.abs(leftStick.x)>dead?leftStick.x:0;
+ const forwardAxis=Math.abs(leftStick.y)>dead?leftStick.y:0;
+ if(!side&&!forwardAxis)return;
+ // Compose the REAL headset orientation with the artificial rig snap-turn.
+ // The tracking-space headset quaternion alone doesn't contain rig yaw.
+ const o=viewerPose.transform.orientation;
+ xrHeadOrientation.set(o.x,o.y,o.z,o.w);
+ rig.getWorldQuaternion(xrRigOrientation);
+ xrHeadOrientation.premultiply(xrRigOrientation); // world = rig * headset
+ xrForward.set(0,0,-1).applyQuaternion(xrHeadOrientation);
+ xrForward.y=0;
+ if(xrForward.lengthSq()<0.0001)return;
+ xrForward.normalize();
+ xrRight.crossVectors(xrForward,WORLD_UP).normalize();
+ // Meta Touch axes: left Y=-1 means forward, X=+1 means right.
+ // The vectors are recomputed after EVERY snap turn and physical head turn.
+ const speed=1.5*dt;
+ const dx=(-forwardAxis*xrForward.x+side*xrRight.x)*speed;
+ const dz=(-forwardAxis*xrForward.z+side*xrRight.z)*speed;
+ moveAvatar(dx,dz);
+}
+renderer.xr.addEventListener('sessionstart',()=>{
+ roof.visible=true;setCeilingVisibleInCamera(true);labels.visible=false;planControls.enabled=false;
+ // Scale only the VR player rig. The physical floor, 2.10 m architecture, and sunlight stay in true metres.
+ // The rig includes the tracked headset and controller models; movement heading remains unchanged.
+ rig.scale.setScalar(VR_VIEWER_SCALE);
+ xrNeedsHeightCalibration=true;snapTurnReady=true;applyBakedVisibility();
+ sunlight.shadow.mapSize.set(1024,1024);sunlight.shadow.map?.dispose();sunlight.shadow.map=null;
+ status('Quest VR session active. Left thumbstick moves, right thumbstick snap-turns. Calibrating eye height from headset tracking…');
+});
+renderer.xr.addEventListener('sessionend',()=>{
+ rig.scale.setScalar(1); // Return the desktop camera and controls to their unscaled dimensions.
+ rig.position.y=0;calibratedEyeOffset=0;xrNeedsHeightCalibration=false;
+ sunlight.shadow.mapSize.set(2048,2048);sunlight.shadow.map?.dispose();sunlight.shadow.map=null;
+ switchMode('plan');status('Returned to desktop plan view.');
+});
+function resize(){
+ const aspect=innerWidth/Math.max(1,innerHeight);
+ renderer.setSize(innerWidth,innerHeight);camera.aspect=aspect;camera.updateProjectionMatrix();
+ const half=Math.max(5.3,7/aspect);planCamera.left=-half*aspect;planCamera.right=half*aspect;
+ planCamera.top=half;planCamera.bottom=-half;planCamera.updateProjectionMatrix();
+}
+window.addEventListener('resize',resize);resize();
+// Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
+let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
+switchMode('plan');status('Shell v0.33 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+loadBakedApartment();
+renderer.setAnimationLoop((now)=>{
+ const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
+ if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
+ simAccumulator+=dt;let steps=0;while(simAccumulator>=1/60&&steps<3){world.step();simAccumulator-=1/60;steps++;}
+ if(simAccumulator>=1/60)simAccumulator=0;
+ renderer.render(scene,renderer.xr.isPresenting?camera:(mode==='plan'?planCamera:camera));
+ frames++;timer+=dt;
+ if(timer>.75){$('fps').textContent=(frames/timer).toFixed(0);$('tris').textContent=renderer.info.render.triangles.toLocaleString();$('calls').textContent=renderer.info.render.calls;
+  $('position').textContent=`${rig.position.x.toFixed(2)} / ${rig.position.z.toFixed(2)} m`;frames=0;timer=0;}
+});
+</script>
+</body>
+</html>

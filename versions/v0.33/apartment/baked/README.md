@@ -1,0 +1,1 @@
+v0.33: corrected white plaster and solid inward-facing ceiling; reception doors offset 60mm clear of walls; continuous hall threshold; 20mm rug; simplified skirting; padded 4K lossless PNG lighting atlas. June 22 2026 at 16:00 BST, exactly three source lights. Ceiling exported by explicit slab membership. Original controls and white exterior preserved.
