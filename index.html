@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#27211c">
-<title>London Flat VR · Architectural Shell v0.33.2</title>
+<title>London Flat VR · Architectural Shell v0.33.3</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
@@ -30,7 +30,7 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.33.2</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.33.3</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, 20 mm pale rug and four-part balcony glazing.</div>
  <div id="vr-entry"><button id="enter-vr" type="button">ENTER VR MODE</button><div id="vr-help" role="status">Loading VR controls…</div></div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button></div>
@@ -582,7 +582,7 @@ function setCeilingVisibleInCamera(show){
  skirtingDecor.visible=show;
  fixtureDecor.visible=show;
 }
-// v0.33.2: Blender baked appearance; original architecture still supplies collisions.
+// v0.33.3: Blender baked appearance; original architecture still supplies collisions.
 const bakedRoot=new THREE.Group();bakedRoot.name='Blender baked apartment';scene.add(bakedRoot);
 let bakedRoof=null, bakedReady=false, lightingMode='baked';
 function applyBakedVisibility(){
@@ -773,9 +773,9 @@ function calibrateXREyeHeight(viewerPose){
  xrNeedsHeightCalibration=false;
  status(`Quest viewpoint: ${Math.round(VR_VIEWER_SCALE*100)}% size (effective eye level ~${(TARGET_EYE_HEIGHT_M*VR_VIEWER_SCALE).toFixed(2)} m). Right stick: 30° snap-turn.`);
 }
-function updateVR(dt){
+function updateVR(dt,animationFrame){
  const session=renderer.xr.getSession();if(!session)return;
- const frame=renderer.xr.getFrame(),space=renderer.xr.getReferenceSpace();
+ const frame=animationFrame||renderer.xr.getFrame(),space=renderer.xr.getReferenceSpace();
  // This viewer pose is in the SAME tracking space as the scene's player rig.
  // Unlike the XR ArrayCamera, it is current for this animation frame.
  const viewerPose=frame&&space?frame.getViewerPose(space):null;
@@ -784,8 +784,10 @@ function updateVR(dt){
  let leftStick=null,rightStick=null;
  for(const source of session.inputSources){
   if(!source.gamepad)continue;
-  if(source.handedness==='left')leftStick=activeStick(source.gamepad);
-  if(source.handedness==='right')rightStick=activeStick(source.gamepad);
+  const stick=activeStick(source.gamepad);
+  const stronger=(old,next)=>!old||Math.hypot(next.x,next.y)>Math.hypot(old.x,old.y)?next:old;
+  if(source.handedness==='left')leftStick=stronger(leftStick,stick);
+  if(source.handedness==='right')rightStick=stronger(rightStick,stick);
  }
  // Process the snap FIRST, independent of inputSources enumeration order.
  if(rightStick){
@@ -842,11 +844,11 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.33.2 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.33.3 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 loadBakedApartment();
-renderer.setAnimationLoop((now)=>{
+renderer.setAnimationLoop((now,xrFrame)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
- if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
+ if(renderer.xr.isPresenting)updateVR(dt,xrFrame);else{planControls.update();updateDesktop(dt);}
  simAccumulator+=dt;let steps=0;while(simAccumulator>=1/60&&steps<3){world.step();simAccumulator-=1/60;steps++;}
  if(simAccumulator>=1/60)simAccumulator=0;
  renderer.render(scene,renderer.xr.isPresenting?camera:(mode==='plan'?planCamera:camera));
