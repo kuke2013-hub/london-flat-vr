@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#181d17"><title>The Quiet Room · VR</title>
+<link rel="stylesheet" href="./style.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script></head>
+<body><main id="stage" aria-label="Interactive abandoned hotel room"></main>
+<section id="welcome" class="panel"><p class="eyebrow">A ROOM HELD IN TIME / 01</p><h1>The Quiet Room</h1><p class="intro">Daylight through old plaster.<br>A little water. A little silence.</p>
+<p class="description">Explore the baked Blender scene at life size.<br>6 × 6.4 metres · 4-metre ceiling.</p>
+<div id="loading" role="status" aria-live="polite">Loading the room…</div>
+<div class="actions"><button id="enter-vr" disabled>Checking VR…</button><button id="explore" class="secondary" disabled>Explore on screen</button></div>
+<div class="controls"><p><strong>Left stick</strong><span>Move forward / back · strafe</span></p><p><strong>Right stick</strong><span>Turn left / right in 30° steps</span></p><p><strong>Headset</strong><span>Look and lean naturally</span></p></div>
+<details><summary>Options & desktop controls</summary><label>Walking speed <select id="speed"><option value=".9">Slow</option><option value="1.35" selected>Natural</option><option value="1.8">Brisk</option></select></label><label><input type="checkbox" id="haze" checked> Light atmospheric haze</label><p>Desktop: click and move the mouse to look. WASD moves; Q/E or ←/→ turns. Esc releases the mouse. Touch: drag to look, use the movement buttons.</p><p>In VR, press X on the left controller to return to the starting position.</p><p class="note">Lighting and wet reflections are baked. Reflections stay fixed as you move.</p></details>
+<a class="back" href="../">← London Flat VR</a></section>
+<nav id="toolbar" hidden><button id="menu">Room controls</button><button id="reset">Reset position</button><span id="stats"></span></nav>
+<div id="hint" hidden>Click to look · WASD to move · Q / E to turn · Esc for cursor</div>
+<div id="touch" hidden><button data-move="KeyW" aria-label="Move forward">↑</button><div><button data-move="KeyA" aria-label="Strafe left">←</button><button data-move="KeyS" aria-label="Move backward">↓</button><button data-move="KeyD" aria-label="Strafe right">→</button></div></div>
+<noscript>This experience needs JavaScript and a WebGL-capable browser.</noscript><script type="module" src="./app.mjs"></script></body></html>
