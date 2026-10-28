@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#27211c">
-<title>London Flat VR · Architectural Shell v0.33</title>
+<title>London Flat VR · Architectural Shell v0.33.1</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
@@ -20,15 +20,20 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 #solar-controls label:nth-child(3){flex:0 0 91px}
 #solar-controls select{width:100%;min-width:0;padding:7px 5px;font-size:12px;background:#42362c}
 #solar-info{margin-top:7px;font-size:11px;line-height:1.5;color:#dcd3bd;min-height:31px;font-variant-numeric:tabular-nums}
+#ui{max-height:calc(100dvh - 28px);overflow-y:auto}
+#vr-entry{margin:8px 0;padding:10px;background:#27211c;border-radius:8px}
+#enter-vr{display:block;position:static;width:100%;min-height:48px;background:#efcc96;color:#302116;font-size:16px;font-weight:750}
+#vr-help{font-size:12px;line-height:1.4;margin-top:6px;color:#f3e9da}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 </head>
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.33</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.33.1</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, 20 mm pale rug and four-part balcony glazing.</div>
- <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
+ <div id="vr-entry"><button id="enter-vr" type="button">ENTER VR MODE</button><div id="vr-help" role="status">Loading VR controls…</div></div>
+ <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button></div>
  <div id="solar-panel">
   <label style="display:block;margin-bottom:8px">Lighting <select id="lighting-mode"><option value="baked">Baked · 22 June, 16:00 BST</option><option value="live">Live seasonal sunlight</option></select></label><div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
   <div id="solar-controls" role="group" aria-label="Choose the date and time for the sun">
@@ -48,7 +53,7 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { VRButton } from 'three/addons/webxr/VRButton.js';
+
 import RAPIER from 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.21.0/dist/rapier.mjs';
 import { PLAN } from './apartment/layout.js';
 import { createSofa, createSofaRug } from './apartment/sofa.js';
@@ -577,7 +582,7 @@ function setCeilingVisibleInCamera(show){
  skirtingDecor.visible=show;
  fixtureDecor.visible=show;
 }
-// v0.33: Blender baked appearance; original architecture still supplies collisions.
+// v0.33.1: Blender baked appearance; original architecture still supplies collisions.
 const bakedRoot=new THREE.Group();bakedRoot.name='Blender baked apartment';scene.add(bakedRoot);
 let bakedRoof=null, bakedReady=false, lightingMode='baked';
 function applyBakedVisibility(){
@@ -625,8 +630,33 @@ for(let i=0;i<2;i++){
  pointer.rotation.x=Math.PI/2;pointer.position.z=-.33;controller.add(pointer);
  const grip=renderer.xr.getControllerGrip(i);rig.add(grip);
 }
-const vrButton=VRButton.createButton(renderer,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
-vrButton.textContent='ENTER QUEST VR';$('vr-slot').appendChild(vrButton);
+const vrButton=$('enter-vr'),vrHelp=$('vr-help');
+let vrPending=false;
+async function startOrExitVR(){
+ if(vrPending)return;
+ if(!window.isSecureContext){vrHelp.textContent='VR needs HTTPS. Open the secure project link.';return;}
+ if(!navigator.xr){vrHelp.textContent='This browser does not expose WebXR. On Quest, open this page directly in Meta Quest Browser.';return;}
+ vrPending=true;vrButton.disabled=true;
+ try{
+  const current=renderer.xr.getSession();
+  if(current){await current.end();return;}
+  // Keep requestSession in the user's button activation; do not await a probe first.
+  const session=await navigator.xr.requestSession('immersive-vr',{requiredFeatures:['local-floor'],optionalFeatures:['bounded-floor','hand-tracking']});
+  try{await renderer.xr.setSession(session);}catch(error){await session.end();throw error;}
+  vrButton.textContent='EXIT VR MODE';vrHelp.textContent='VR active.';
+ }catch(error){
+  vrHelp.textContent='VR could not start ('+(error.name||'error')+'): '+error.message+'. Check this site’s VR permission in Quest Browser, then try again.';
+  console.error('VR session failed',error);
+ }finally{vrPending=false;vrButton.disabled=false;}
+}
+vrButton.addEventListener('click',startOrExitVR);
+renderer.xr.addEventListener('sessionend',()=>{vrButton.textContent='ENTER VR MODE';vrHelp.textContent='VR ended. Select Enter VR Mode to return.';});
+if(navigator.xr){
+ navigator.xr.isSessionSupported('immersive-vr').then(supported=>{
+  vrHelp.textContent=supported?'Quest ready — select Enter VR Mode.':'This browser reports immersive VR unavailable. On Quest, open this page directly in Meta Quest Browser.';
+ }).catch(error=>{vrHelp.textContent='VR support check failed: '+error.message+'. You can still select Enter VR Mode to retry.';});
+}else{vrHelp.textContent='Desktop preview. To enter VR, open this link in Meta Quest Browser.';}
+
 function switchMode(next){
  if(renderer.xr.isPresenting)return;
  mode=next;const plan=mode==='plan';roof.visible=true;setCeilingVisibleInCamera(!plan);labels.visible=plan;
@@ -812,7 +842,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.33 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.33.1 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 loadBakedApartment();
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
