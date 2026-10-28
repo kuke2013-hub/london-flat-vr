@@ -1,0 +1,1 @@
+v0.32 — Blender baked apartment. 4096px AgX appearance atlas, baked June 22 2026 16:00 BST. Rendered unlit to avoid double illumination. White exterior. Original v0.31 collision and locomotion logic preserved. Seasonal lighting remains available in live mode. Native Blender masters remain in the local project outputs.

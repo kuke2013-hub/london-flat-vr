@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#27211c">
-<title>London Flat VR · Architectural Shell v0.31</title>
+<title>London Flat VR · Architectural Shell v0.32</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
@@ -26,11 +26,11 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.31</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.32</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, thick pale rug and four-part balcony glazing.</div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button><span id="vr-slot"></span></div>
  <div id="solar-panel">
-  <div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
+  <label style="display:block;margin-bottom:8px">Lighting <select id="lighting-mode"><option value="baked">Baked · 22 June, 16:00 BST</option><option value="live">Live seasonal sunlight</option></select></label><div id="solar-panel-title">SUNLIGHT · LONDON · 2026</div>
   <div id="solar-controls" role="group" aria-label="Choose the date and time for the sun">
    <label for="sun-month">Month<select id="sun-month" aria-label="Solar month">
     <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6" selected>June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
@@ -40,8 +40,8 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
   </div>
   <div id="solar-info" aria-live="polite">Calculating the seasonal sun…</div>
  </div>
- <div id="status">Preparing Three.js and Rapier…</div>
- <div id="data"><strong>Finishes:</strong> near-white walls and ceiling with a very subtle warm bias / neutral clear glass / pale wood / cream bedroom carpet / grey kitchen floor. <strong>Fixtures:</strong> radiator beside the balcony window, two cream switches and a brushed-metal double socket by the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. Seasonal London sun position and daylight time are calculated; plan compass orientation is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
+ <div id="status">Preparing baked apartment…</div>
+ <div id="data"><strong>Finishes:</strong> near-white walls and ceiling with a very subtle warm bias / neutral clear glass / pale wood / cream bedroom carpet / grey kitchen floor. <strong>Fixtures:</strong> radiator beside the balcony window, two cream switches and a brushed-metal double socket by the kitchen.<br><strong>Provisional:</strong> framing, wall thicknesses and door swings. <strong>Current:</strong> 2.10 m confirmed white ceiling and walls; entrance door 1038 × 1931 × 44 mm, internal doors 762 × 1931 × 35 mm (169 mm below ceiling); Quest viewer at 90% scale. Baked lighting: 22 June 2026, 16:00 BST. Switch to live lighting for seasonal controls; compass orientation is approximate.<br><strong>Desktop:</strong> Plan: drag to pan, scroll to zoom. Walk: WASD, mouse to look (click scene), Esc to release.</div>
 </div>
 <div id="footnotes">FPS <span id="fps">—</span><br>Triangles <span id="tris">—</span><br>Draw calls <span id="calls">—</span><br>Position <span id="position">—</span></div>
 <div id="footer">Quest: left stick up/down = forward/back, left/right = strafe; right stick = 30° snap-turn. Opaque walls and ceiling cast shadows; glass does not.</div>
@@ -143,7 +143,7 @@ for(let hour=6;hour<=23;hour++){
 }
 sunHourSelect.value='16';
 rebuildSolarDays();
-sunDaySelect.value='21';
+sunDaySelect.value='22';
 
 function calculateLondonSun(month,day,localHour){
  if(month<1||month>12||day<1||day>daysInSolarMonth(month)||localHour<6||localHour>23)
@@ -188,9 +188,9 @@ function applyLondonSun(month,day,hour){
  const fill=Math.pow(skyDaylight,.72);
  skyLight.intensity=.035+.91*fill;
  ambientFill.intensity=.012+.15*fill;
- scene.background.copy(SUN_BG_NIGHT).lerp(SUN_BG_DAY,c(fill,0,1));
+ scene.background.set('#ffffff');
  const sunsetGlow=c(1-Math.abs(solar.elevation-3)/13,0,1);
- scene.background.lerp(SUN_BG_DUSK,sunsetGlow*.24);
+ 
  sunlight.target.updateMatrixWorld();
  sunlight.updateMatrixWorld();
  sunlight.shadow.needsUpdate=true;
@@ -208,12 +208,13 @@ function solarDescription(solar){
   : `${date} · ${time} ${solar.zone} · Sun below horizon (${angle}) · no direct light`;
 }
 function updateSelectedSun(){
+ if(typeof setLightingMode==='function')setLightingMode('live');
  const month=Number(sunMonthSelect.value),day=Number(sunDaySelect.value),hour=Number(sunHourSelect.value);
  solarStudy=applyLondonSun(month,day,hour);
  $('solar-info').textContent=solarDescription(solarStudy);
  status('Solar study · '+solarDescription(solarStudy));
 }
-let solarStudy=applyLondonSun(6,21,16); // Keep the former 21 June, 16:00 BST opening light.
+let solarStudy=applyLondonSun(6,22,16); // Keep the former 21 June, 16:00 BST opening light.
 $('solar-info').textContent=solarDescription(solarStudy);
 sunMonthSelect.addEventListener('change',()=>{rebuildSolarDays();updateSelectedSun();});
 sunDaySelect.addEventListener('change',updateSelectedSun);
@@ -575,6 +576,42 @@ function setCeilingVisibleInCamera(show){
  skirtingDecor.visible=show;
  fixtureDecor.visible=show;
 }
+// v0.32: Blender baked appearance; original architecture still supplies collisions.
+const bakedRoot=new THREE.Group();bakedRoot.name='Blender baked apartment';scene.add(bakedRoot);
+let bakedRoof=null, bakedReady=false, lightingMode='baked';
+function applyBakedVisibility(){
+ const useBake=bakedReady&&lightingMode==='baked'&&(mode!=='plan'||renderer.xr.isPresenting);
+ bakedRoot.visible=useBake;
+ architectural.visible=!useBake;roof.visible=!useBake;
+ skirtingDecor.visible=!useBake&&(mode!=='plan'||renderer.xr.isPresenting);
+ fixtureDecor.visible=skirtingDecor.visible;
+ scene.background.set('#ffffff');
+}
+function setLightingMode(value){
+ lightingMode=value;$('lighting-mode').value=value;
+ for(const el of [sunMonthSelect,sunDaySelect,sunHourSelect])el.disabled=value==='baked';
+ $('solar-info').textContent=value==='baked'?'Baked lighting · 22 June 2026 · 16:00 BST':solarDescription(solarStudy);
+ applyBakedVisibility();
+}
+$('lighting-mode').addEventListener('change',e=>setLightingMode(e.target.value));
+async function loadBakedApartment(){
+ try{
+  status('Loading baked apartment…');
+  const [data,texture]=await Promise.all([
+   fetch('./apartment/baked/geometry.json?v=032').then(r=>{if(!r.ok)throw new Error('Geometry download failed');return r.json();}),
+   new THREE.TextureLoader().loadAsync('./apartment/baked/lighting.jpg?v=032')
+  ]);
+  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+  const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,toneMapped:false});
+  for(const [name,part] of Object.entries(data)){
+   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(part.positions,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(part.uv,2));geometry.computeBoundingSphere();
+   const mesh=new THREE.Mesh(geometry,material);mesh.name=name;bakedRoot.add(mesh);if(name==='ceiling')bakedRoof=mesh;
+  }
+  bakedReady=true;setLightingMode('baked');switchMode('walk');
+  status('Baked apartment ready · white exterior · left stick move, right stick 30° snap-turn.');
+ }catch(error){console.error(error);setLightingMode('live');status('Baked assets could not load. Live apartment remains available; reload to retry.');}
+}
+setLightingMode('baked');
 // Minimal vertical cutaway outline helper in overhead view. Not furniture or exterior scenery.
 const spawn=m(PLAN.spawn);
 const marker=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.012,24),new THREE.MeshBasicMaterial({color:'#b78550'}));
@@ -593,7 +630,7 @@ function switchMode(next){
  if(renderer.xr.isPresenting)return;
  mode=next;const plan=mode==='plan';roof.visible=true;setCeilingVisibleInCamera(!plan);labels.visible=plan;
  planControls.enabled=plan;renderer.domElement.style.cursor=plan?'grab':'crosshair';
- $('overhead').classList.toggle('active',plan);$('walk').classList.toggle('active',!plan);
+ $('overhead').classList.toggle('active',plan);$('walk').classList.toggle('active',!plan);applyBakedVisibility();
  if(!plan){if(document.pointerLockElement===renderer.domElement)document.exitPointerLock(); status('Walk mode · click the scene to look around; WASD to move.');}
  else {if(document.pointerLockElement===renderer.domElement)document.exitPointerLock();status('Plan mode · original irregular walls and real openings; drag / scroll to inspect.');}
 }
@@ -755,7 +792,7 @@ renderer.xr.addEventListener('sessionstart',()=>{
  // Scale only the VR player rig. The physical floor, 2.10 m architecture, and sunlight stay in true metres.
  // The rig includes the tracked headset and controller models; movement heading remains unchanged.
  rig.scale.setScalar(VR_VIEWER_SCALE);
- xrNeedsHeightCalibration=true;snapTurnReady=true;
+ xrNeedsHeightCalibration=true;snapTurnReady=true;applyBakedVisibility();
  sunlight.shadow.mapSize.set(1024,1024);sunlight.shadow.map?.dispose();sunlight.shadow.map=null;
  status('Quest VR session active. Left thumbstick moves, right thumbstick snap-turns. Calibrating eye height from headset tracking…');
 });
@@ -774,7 +811,8 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.31 ready · 10% smaller warm-grey sofa with polished chrome and a thick pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.32 ready · 10% smaller warm-grey sofa with polished chrome and a thick pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+loadBakedApartment();
 renderer.setAnimationLoop((now)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
  if(renderer.xr.isPresenting)updateVR(dt);else{planControls.update();updateDesktop(dt);}
