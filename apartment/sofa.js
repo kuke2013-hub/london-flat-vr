@@ -141,7 +141,7 @@ export function createSofa(THREE, { width=2.42, depth=1.00 } = {}) {
  * Shared canvas texture gives a soft, irregular woven pile without hair meshes.
  */
 export function createSofaRug(THREE, {width=2.55,depth=1.90,thicknessM=.048} = {}) {
-  if(!(width>1.5&&depth>1&&thicknessM>=.025))
+  if(!(width>1.5&&depth>1&&thicknessM>=.005))
    throw new RangeError('Invalid rug dimensions');
   const rug=new THREE.Group();rug.name='Raised light greige woven living-room rug';
   rug.userData={type:'rug',widthM:width,depthM:depth,thicknessM};
