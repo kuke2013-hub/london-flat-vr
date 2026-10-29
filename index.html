@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#27211c">
-<title>London Flat VR · Architectural Shell v0.36</title>
+<title>London Flat VR · Architectural Shell v0.37</title>
 <style>
 :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e1d4c3}
@@ -30,7 +30,7 @@ h1{font-size:15px;margin:0 0 5px;font-weight:700;letter-spacing:.01em}#subtitle{
 <body>
 <div id="stage"></div>
 <div id="ui">
- <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.36</span></h1>
+ <h1>London Flat VR <span style="font-weight:400;color:#e0bc8c">/ shell v0.37</span></h1>
  <div id="subtitle">Clephane Road · 52.58 m² gross internal area · first trace from your original plan. Solid-wall sun occlusion and headset-relative Quest controls · photo-referenced warm-grey three-seat sofa, bright chrome details, 20 mm pale rug and four-part balcony glazing.</div>
  <div id="vr-entry"><button id="enter-vr" type="button">ENTER VR MODE</button><div id="vr-help" role="status">Loading VR controls…</div></div>
  <div id="controls"><button id="overhead" class="active" type="button">Plan view</button><button id="walk" type="button">Walk inside</button><button id="reset" type="button">Reset position</button></div>
@@ -582,7 +582,39 @@ function setCeilingVisibleInCamera(show){
  skirtingDecor.visible=show;
  fixtureDecor.visible=show;
 }
-// v0.36: Blender baked appearance; original architecture still supplies collisions.
+// v0.37: Blender baked appearance; original architecture still supplies collisions.
+// Supplied 2K PBR floor: U along Blender Y / Three -Z, one 4.32m world tile.
+let woodFloorMesh=null,woodFloorMaterial=null;
+async function loadWoodFloor(){
+ const path='./apartment/floor/',loader=new THREE.TextureLoader();
+ const [data,albedo,rough,normal,light]=await Promise.all([
+  fetch(path+'floor.json?v=037').then(r=>{if(!r.ok)throw Error('Floor geometry unavailable');return r.json();}),
+  loader.loadAsync(path+'honey_wood_basecolor_2k.png'),loader.loadAsync(path+'honey_wood_roughness_2k.png'),loader.loadAsync(path+'honey_wood_normal_2k.png'),loader.loadAsync(path+'illumination.png?v=037')]);
+ albedo.colorSpace=THREE.SRGBColorSpace;
+ for(const t of [albedo,rough,normal]){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);}
+ light.colorSpace=THREE.NoColorSpace;light.channel=1;
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(data.positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(data.uv,2));g.setAttribute('uv1',new THREE.Float32BufferAttribute(data.uv1,2));g.computeVertexNormals();g.computeBoundingSphere();
+ woodFloorMaterial=new THREE.MeshStandardMaterial({map:albedo,roughnessMap:rough,roughness:1,metalness:0,normalMap:normal,normalScale:new THREE.Vector2(.12,.12),lightMap:light,lightMapIntensity:data.lightScale,envMapIntensity:.18});
+ // Use baked illumination exactly once; retain view-dependent environment gloss.
+ woodFloorMaterial.onBeforeCompile=shader=>{
+  shader.uniforms.floorUseBake={value:lightingMode==='baked'?1:0};woodFloorMaterial.userData.shader=shader;
+  shader.fragmentShader='uniform float floorUseBake;\n'+shader.fragmentShader;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
+   if(floorUseBake > 0.5){
+    reflectedLight.directDiffuse=vec3(0.0);reflectedLight.directSpecular=vec3(0.0);
+    reflectedLight.indirectDiffuse=diffuseColor.rgb*texture2D(lightMap,vLightMapUv).rgb*lightMapIntensity;
+   }`);
+ };
+ woodFloorMesh=new THREE.Mesh(g,woodFloorMaterial);woodFloorMesh.name='Living and corridor honey wood';woodFloorMesh.receiveShadow=true;scene.add(woodFloorMesh);
+ for(const o of architectural.children)if(o.userData.roomId==='reception'||o.userData.roomId==='hall')o.visible=false;
+ threshold.visible=false;
+ // One static capture, no per-frame reflection rendering on Quest.
+ const target=new THREE.WebGLCubeRenderTarget(128,{type:THREE.HalfFloatType});
+ const probe=new THREE.CubeCamera(.05,30,target);probe.position.set(-3,.75,-.4);
+ woodFloorMesh.visible=false;probe.update(renderer,scene);woodFloorMesh.visible=true;
+ const pmrem=new THREE.PMREMGenerator(renderer);woodFloorMaterial.envMap=pmrem.fromCubemap(target.texture).texture;woodFloorMaterial.needsUpdate=true;target.dispose();pmrem.dispose();
+}
+
 const bakedRoot=new THREE.Group();bakedRoot.name='Blender baked apartment';scene.add(bakedRoot);
 const bedRoot=new THREE.Group();bedRoot.name='Bedroom bed';scene.add(bedRoot);
 let bakedRoof=null, bakedReady=false, lightingMode='baked';
@@ -596,6 +628,7 @@ function applyBakedVisibility(){
 }
 function setLightingMode(value){
  lightingMode=value;$('lighting-mode').value=value;
+ if(woodFloorMaterial){woodFloorMaterial.lightMapIntensity=value==='baked'?4:0;if(woodFloorMaterial.userData.shader)woodFloorMaterial.userData.shader.uniforms.floorUseBake.value=value==='baked'?1:0;}
  for(const el of [sunMonthSelect,sunDaySelect,sunHourSelect])el.disabled=value==='baked';
  $('solar-info').textContent=value==='baked'?'Baked lighting · 22 June 2026 · 16:00 BST':solarDescription(solarStudy);
  applyBakedVisibility();
@@ -605,7 +638,7 @@ async function loadBakedApartment(){
  try{
   status('Loading baked apartment…');
   const [data,texture,bedData,bedTexture]=await Promise.all([
-   fetch('./apartment/baked/geometry.json?v=036').then(r=>{if(!r.ok)throw new Error('Geometry download failed');return r.json();}),
+   fetch('./apartment/floor/room_without_wood.json?v=037').then(r=>{if(!r.ok)throw new Error('Geometry download failed');return r.json();}),
    new THREE.TextureLoader().loadAsync('./apartment/baked/lighting.png?v=036'),
    fetch('./apartment/baked/bed.json?v=035').then(r=>{if(!r.ok)throw new Error('Bed geometry download failed');return r.json();}),
    new THREE.TextureLoader().loadAsync('./apartment/baked/bed.png?v=035')
@@ -622,7 +655,8 @@ async function loadBakedApartment(){
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(part.positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(part.uv,2));g.computeBoundingSphere();bedRoot.add(new THREE.Mesh(g,bedMaterial));
   }
   bakedReady=true;setLightingMode('baked');switchMode('walk');
-  status('Baked apartment with bedroom bed ready · white exterior · left stick move, right stick 30° snap-turn.');
+  await loadWoodFloor();
+  status('Baked apartment with honey wood flooring ready · white exterior · left stick move, right stick 30° snap-turn.');
  }catch(error){console.error(error);setLightingMode('live');status('Baked assets could not load. Live apartment remains available; reload to retry.');}
 }
 setLightingMode('baked');
@@ -853,7 +887,7 @@ function resize(){
 window.addEventListener('resize',resize);resize();
 // Static floor/walls are represented by fixed Rapier colliders; there are no physics test cubes.
 let previous=performance.now(),timer=0,frames=0,simAccumulator=0;
-switchMode('plan');status('Shell v0.36 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
+switchMode('plan');status('Shell v0.37 ready · 10% smaller warm-grey sofa with polished chrome and a 20 mm pale rug · London seasonal sunlight: '+solarDescription(solarStudy)+' · Floor and VR controls preserved.');
 loadBakedApartment();
 renderer.setAnimationLoop((now,xrFrame)=>{
  const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;
@@ -868,5 +902,6 @@ renderer.setAnimationLoop((now,xrFrame)=>{
 </script>
 </body>
 </html>
+
 
 
