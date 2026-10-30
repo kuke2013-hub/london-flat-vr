@@ -152,10 +152,10 @@ export function createSofaRug(THREE, {width=2.55,depth=1.90,thicknessM=.048} = {
   for(let y=0;y<256;y++)for(let x=0;x<256;x++){
     const i=(y*256+x)*4;
     const weave=((x%4===0)?5:0)+((y%5===0)?-4:0);
-    const noise=(rng()-.5)*23+weave;
-    image.data[i]=Math.max(0,Math.min(255,220+noise));
-    image.data[i+1]=Math.max(0,Math.min(255,214+noise));
-    image.data[i+2]=Math.max(0,Math.min(255,205+noise));
+    const noise=(rng()-.5)*10+weave;
+    image.data[i]=Math.max(0,Math.min(255,239+noise));
+    image.data[i+1]=Math.max(0,Math.min(255,233+noise));
+    image.data[i+2]=Math.max(0,Math.min(255,217+noise));
     image.data[i+3]=255;
   }
   ctx.putImageData(image,0,0);
@@ -169,8 +169,8 @@ export function createSofaRug(THREE, {width=2.55,depth=1.90,thicknessM=.048} = {
   texture.colorSpace=THREE.SRGBColorSpace;
   texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
   texture.repeat.set(width*1.1,depth*1.1);texture.anisotropy=2;
-  const bodyMat=new THREE.MeshStandardMaterial({color:0xc5bdb2,roughness:1});
-  const pileMat=new THREE.MeshStandardMaterial({color:0xe4dfd8,map:texture,roughness:1,metalness:0});
+  const bodyMat=new THREE.MeshStandardMaterial({color:0xe7dfcd,roughness:1});
+  const pileMat=new THREE.MeshStandardMaterial({color:0xffffff,map:texture,roughness:1,metalness:0});
   const bodyHeight=thicknessM*.75,pileHeight=thicknessM*.46;
   const body=new THREE.Mesh(new RoundedBoxGeometry(width,bodyHeight,depth,3,.014),bodyMat);
   body.name='Thick woven carpet bound edge';
@@ -181,3 +181,4 @@ export function createSofaRug(THREE, {width=2.55,depth=1.90,thicknessM=.048} = {
   pile.castShadow=true;pile.receiveShadow=true;rug.add(pile);
   return rug;
 }
+
